@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Abilities
 {
+    /// <summary>
+    /// Runtime projectile behaviour: movement, collision handling, lifetime, and pool return.
+    /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     public sealed class ProjectileRuntime : MonoBehaviour
     {
@@ -73,7 +76,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             _isActive = true;
             _elapsedSeconds = 0f;
 
-            _rigidbody.linearVelocity = direction.normalized * Mathf.Max(0f, speed);
+            _rigidbody.velocity = direction.normalized * Mathf.Max(0f, speed);
             _rigidbody.angularVelocity = Vector3.zero;
         }
 
@@ -85,7 +88,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
 
             _isActive = false;
-            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.velocity = Vector3.zero;
             _rigidbody.angularVelocity = Vector3.zero;
 
             _releaseAction?.Invoke(this);

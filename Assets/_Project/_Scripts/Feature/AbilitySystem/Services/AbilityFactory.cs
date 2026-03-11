@@ -5,6 +5,9 @@ using CaseStudy.Feature.AbilitySystem.Data;
 
 namespace CaseStudy.Feature.AbilitySystem.Services
 {
+    /// <summary>
+    /// Creates runtime ability instances from AbilityDataSO types via registered creators.
+    /// </summary>
     public sealed class AbilityFactory : IAbilityFactory
     {
         private readonly Dictionary<Type, Func<AbilityDataSO, IAbility>> _creators = new();

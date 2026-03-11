@@ -11,6 +11,9 @@ using VContainer.Unity;
 
 namespace CaseStudy.Feature.AbilitySystem.Services
 {
+    /// <summary>
+    /// Orchestrates ability execution flow: trigger, validation, energy, cooldown, and result events.
+    /// </summary>
     public sealed class AbilityController : IAbilityController, IStartable, IDisposable
     {
         private readonly IAbilityFactory _abilityFactory;

@@ -9,6 +9,9 @@ using VContainer.Unity;
 
 namespace SabanCoreTemplate
 {
+    /// <summary>
+    /// Root DI scope for the case study. Registers scene flow and ability system services.
+    /// </summary>
     public class GameLifetimeScope : LifetimeScope
     {
         [SerializeField] private LoadingScreen _loadingScreenPrefab;
@@ -37,6 +40,7 @@ namespace SabanCoreTemplate
             builder.Register<AbilityController>(Lifetime.Singleton);
             builder.Register<IAbilityController>(resolver => resolver.Resolve<AbilityController>(), Lifetime.Singleton);
             builder.RegisterEntryPoint<AbilityController>();
+            builder.RegisterEntryPoint<AbilityFactoryBootstrapper>();
 
             GameObject systems = Instantiate(_defaultSystemsPrefab);
             DontDestroyOnLoad(systems);

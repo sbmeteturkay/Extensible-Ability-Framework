@@ -5,6 +5,9 @@ using VContainer.Unity;
 
 namespace CaseStudy.Feature.AbilitySystem.Services
 {
+    /// <summary>
+    /// Registers concrete ability creators into the ability factory at startup.
+    /// </summary>
     public sealed class AbilityFactoryBootstrapper : IStartable
     {
         private readonly IAbilityFactory _abilityFactory;

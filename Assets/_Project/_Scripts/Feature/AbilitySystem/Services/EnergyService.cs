@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Services
 {
+    /// <summary>
+    /// Maintains ability energy state and publishes energy change events.
+    /// </summary>
     public sealed class EnergyService : IEnergyService
     {
         private const float DEFAULT_MAX_ENERGY = 100f;

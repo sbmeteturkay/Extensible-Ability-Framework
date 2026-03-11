@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Services
 {
+    /// <summary>
+    /// Tracks cooldown timers per ability and publishes cooldown lifecycle events.
+    /// </summary>
     public sealed class CooldownService : ICooldownService
     {
         private readonly struct CooldownState

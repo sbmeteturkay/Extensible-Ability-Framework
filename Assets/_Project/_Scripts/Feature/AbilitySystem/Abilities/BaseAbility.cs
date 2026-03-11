@@ -7,6 +7,9 @@ using Cysharp.Threading.Tasks;
 
 namespace CaseStudy.Feature.AbilitySystem.Abilities
 {
+    /// <summary>
+    /// Shared ability base class that stores context/data and common lifecycle defaults.
+    /// </summary>
     public abstract class BaseAbility : IAbility
     {
         protected AbilityContext Context { get; private set; }
