@@ -620,7 +620,7 @@ GameObject:
   - component: {fileID: 707334202}
   - component: {fileID: 707334203}
   m_Layer: 0
-  m_Name: SceneScopes
+  m_Name: Injecton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -650,9 +650,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 707334201}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3738c7013240d9a499402fd0be118d01, type: 3}
+  m_Script: {fileID: 11500000, guid: 6052fd7977c6aef46becb2892db49cc6, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SabanCoreTemplate.GameLifetimeScope
+  m_EditorClassIdentifier: Assembly-CSharp::AbilitySystemLifetimeScope
   parentReference:
     TypeName: 
   autoRun: 1
@@ -1094,9 +1094,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 866b8ce146a34bb439381f4a8f570d3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Input.AbilityInputGateway
-  _primaryKey: 113
-  _secondaryKey: 119
-  _utilityKey: 101
+  _primaryAction: {fileID: 7449911823583905456, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _secondaryAction: {fileID: -896253045769246262, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _utilityAction: {fileID: 119769231075260232, guid: 052faaac586de48259a63d0c4782560b, type: 3}
 --- !u!1 &1671131232
 GameObject:
   m_ObjectHideFlags: 0

@@ -110,7 +110,6 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             }
 
             AbilityId abilityId = ability.Id;
-            Debug.Log(abilityId);
 
             if (!_cooldownService.IsReady(abilityId))
             {

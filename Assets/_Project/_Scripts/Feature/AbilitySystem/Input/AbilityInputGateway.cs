@@ -8,60 +8,48 @@ using VContainer;
 namespace CaseStudy.Feature.AbilitySystem.Input
 {
     /// <summary>
-    ///     Publishes slot trigger requests from keyboard and UI button callbacks.
+    /// Publishes slot trigger requests from Input System actions.
     /// </summary>
     public sealed class AbilityInputGateway : MonoBehaviour
     {
-        [Header("Keyboard Fallback")]
-        [SerializeField] private KeyCode _primaryKey = KeyCode.Alpha1;
-
-        [SerializeField] private KeyCode _secondaryKey = KeyCode.Alpha2;
-        [SerializeField] private KeyCode _utilityKey = KeyCode.Alpha3;
+        [Header("Input Actions")]
+        [SerializeField] private InputActionReference _primaryAction;
+        [SerializeField] private InputActionReference _secondaryAction;
+        [SerializeField] private InputActionReference _utilityAction;
 
         private IPublisher<AbilityTriggerRequestedEvent> _triggerPublisher;
-        
+
         [Inject]
         public void Construct(IPublisher<AbilityTriggerRequestedEvent> triggerPublisher)
         {
             _triggerPublisher = triggerPublisher;
         }
-        
-        private void Update()
+
+        private void OnEnable()
         {
-            if (_triggerPublisher == null)
-            {
-                return;
-            }
-
-            if (Keyboard.current.qKey.isPressed)
-            {
-                TriggerPrimary();
-            }
-
-            if (Keyboard.current.wKey.isPressed)
-            {
-                TriggerSecondary();
-            }
-
-            if (Keyboard.current.eKey.isPressed)
-            {
-                TriggerUtility();
-            }
+            BindAction(_primaryAction, OnPrimaryPerformed);
+            BindAction(_secondaryAction, OnSecondaryPerformed);
+            BindAction(_utilityAction, OnUtilityPerformed);
         }
 
+        private void OnDisable()
+        {
+            UnbindAction(_primaryAction, OnPrimaryPerformed);
+            UnbindAction(_secondaryAction, OnSecondaryPerformed);
+            UnbindAction(_utilityAction, OnUtilityPerformed);
+        }
 
-
-        public void TriggerPrimary()
+        private void OnPrimaryPerformed(InputAction.CallbackContext context)
         {
             Publish(AbilitySlot.Primary);
         }
 
-        public void TriggerSecondary()
+        private void OnSecondaryPerformed(InputAction.CallbackContext context)
         {
             Publish(AbilitySlot.Secondary);
         }
 
-        public void TriggerUtility()
+        private void OnUtilityPerformed(InputAction.CallbackContext context)
         {
             Publish(AbilitySlot.Utility);
         }
@@ -73,7 +61,31 @@ namespace CaseStudy.Feature.AbilitySystem.Input
                 return;
             }
 
-            _triggerPublisher.Publish(new(slot));
+            _triggerPublisher.Publish(new AbilityTriggerRequestedEvent(slot));
+        }
+
+        private static void BindAction(InputActionReference actionReference, System.Action<InputAction.CallbackContext> callback)
+        {
+            if (actionReference == null || actionReference.action == null)
+            {
+                return;
+            }
+
+            actionReference.action.performed += callback;
+            if (!actionReference.action.enabled)
+            {
+                actionReference.action.Enable();
+            }
+        }
+
+        private static void UnbindAction(InputActionReference actionReference, System.Action<InputAction.CallbackContext> callback)
+        {
+            if (actionReference == null || actionReference.action == null)
+            {
+                return;
+            }
+
+            actionReference.action.performed -= callback;
         }
     }
 }
