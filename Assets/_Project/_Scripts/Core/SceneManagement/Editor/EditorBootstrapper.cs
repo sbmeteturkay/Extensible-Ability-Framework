@@ -8,15 +8,14 @@ using UnityEngine.SceneManagement;
 
 namespace SabanCoreTemplate.SceneManagement
 {
-    [InitializeOnLoad]
     public static class EditorBootstrapper
     {
         private const string BootScenePath = "Assets/_Project/Scenes/Boot.unity";
 
-        static EditorBootstrapper()
-        {
-            EditorApplication.playModeStateChanged += OnPlayModeChanged;
-        }
+        // static EditorBootstrapper()
+        // {
+        //     EditorApplication.playModeStateChanged += OnPlayModeChanged;
+        // }
 
         private static void OnPlayModeChanged(PlayModeStateChange state)
         {
