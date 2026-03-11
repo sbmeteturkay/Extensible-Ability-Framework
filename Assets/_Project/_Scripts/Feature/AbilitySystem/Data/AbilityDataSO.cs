@@ -6,6 +6,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
     public abstract class AbilityDataSO : ScriptableObject
     {
         [Header("Common")]
+        //todo: auto ability id set for each inherit
         [SerializeField] private AbilityId _abilityId = AbilityId.None;
         [SerializeField] private string _displayName = "New Ability";
         [SerializeField] private Sprite _icon;

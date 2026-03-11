@@ -76,7 +76,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             _isActive = true;
             _elapsedSeconds = 0f;
 
-            _rigidbody.velocity = direction.normalized * Mathf.Max(0f, speed);
+            _rigidbody.linearVelocity = direction.normalized * Mathf.Max(0f, speed);
             _rigidbody.angularVelocity = Vector3.zero;
         }
 
@@ -88,7 +88,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
 
             _isActive = false;
-            _rigidbody.velocity = Vector3.zero;
+            _rigidbody.linearVelocity = Vector3.zero;
             _rigidbody.angularVelocity = Vector3.zero;
 
             _releaseAction?.Invoke(this);

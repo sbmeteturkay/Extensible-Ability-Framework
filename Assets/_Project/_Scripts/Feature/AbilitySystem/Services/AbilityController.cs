@@ -7,6 +7,7 @@ using CaseStudy.Feature.AbilitySystem.Domain;
 using CaseStudy.Shared.AbilitySystem.Events;
 using Cysharp.Threading.Tasks;
 using MessagePipe;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace CaseStudy.Feature.AbilitySystem.Services
@@ -14,7 +15,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
     /// <summary>
     /// Orchestrates ability execution flow: trigger, validation, energy, cooldown, and result events.
     /// </summary>
-    public sealed class AbilityController : IAbilityController, IStartable, IDisposable
+    public sealed class AbilityController : IAbilityController, IStartable, ITickable, IDisposable
     {
         private readonly IAbilityFactory _abilityFactory;
         private readonly ICooldownService _cooldownService;
@@ -25,6 +26,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
         private readonly Dictionary<AbilitySlot, IAbility> _slotToAbility = new();
         private readonly Dictionary<AbilityId, AbilityDataSO> _abilityDataById = new();
+        private readonly List<IAbility> _configuredAbilities = new(3);
 
         private AbilityContext _context;
         private IDisposable _triggerSubscription;
@@ -50,6 +52,17 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             _triggerSubscription = _triggerSubscriber.Subscribe(OnTriggerRequested);
         }
 
+        public void Tick()
+        {
+            float deltaTime = UnityEngine.Time.deltaTime;
+            int count = _configuredAbilities.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                _configuredAbilities[i].Tick(deltaTime);
+            }
+        }
+
         public void Dispose()
         {
             _triggerSubscription?.Dispose();
@@ -67,6 +80,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
             _slotToAbility.Clear();
             _abilityDataById.Clear();
+            _configuredAbilities.Clear();
 
             foreach (KeyValuePair<AbilitySlot, AbilityDataSO> pair in loadout)
             {
@@ -84,6 +98,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 ability.Initialize(_context, data);
                 _slotToAbility[pair.Key] = ability;
                 _abilityDataById[data.AbilityId] = data;
+                _configuredAbilities.Add(ability);
             }
         }
 
@@ -95,6 +110,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             }
 
             AbilityId abilityId = ability.Id;
+            Debug.Log(abilityId);
 
             if (!_cooldownService.IsReady(abilityId))
             {
