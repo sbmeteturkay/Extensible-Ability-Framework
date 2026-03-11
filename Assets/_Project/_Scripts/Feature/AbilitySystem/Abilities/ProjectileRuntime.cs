@@ -2,10 +2,12 @@ using System;
 using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Abilities
-{
+{ 
+    //todo: refactor this
     /// <summary>
     /// Runtime projectile behaviour: movement, collision handling, lifetime, and pool return.
     /// </summary>
+    /// 
     [RequireComponent(typeof(Rigidbody))]
     public sealed class ProjectileRuntime : MonoBehaviour
     {

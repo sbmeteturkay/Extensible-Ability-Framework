@@ -16,13 +16,13 @@ MonoBehaviour:
   _displayName: New Ability
   _icon: {fileID: 0}
   _cooldownSeconds: 1
-  _energyCost: 0
+  _energyCost: 30
   _affectedLayers:
     serializedVersion: 2
     m_Bits: 4294967295
   _castVfxPrefab: {fileID: 0}
   _castSfx: {fileID: 0}
-  _projectilePrefab: {fileID: 0}
+  _projectilePrefab: {fileID: 3256030433253130741, guid: 91da0bdcf08d94d4fb8d80f7dd7010af, type: 3}
   _impactVfxPrefab: {fileID: 0}
   _projectileSpeed: 16
   _maxLifeTimeSeconds: 3

@@ -16,7 +16,7 @@ MonoBehaviour:
   _displayName: New Ability
   _icon: {fileID: 0}
   _cooldownSeconds: 1
-  _energyCost: 0
+  _energyCost: 10
   _affectedLayers:
     serializedVersion: 2
     m_Bits: 4294967295

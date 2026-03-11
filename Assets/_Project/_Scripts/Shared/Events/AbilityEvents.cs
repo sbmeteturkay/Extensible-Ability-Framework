@@ -1,4 +1,5 @@
 using CaseStudy.Feature.AbilitySystem.Domain;
+using UnityEngine;
 
 namespace CaseStudy.Shared.AbilitySystem.Events
 {
@@ -85,6 +86,22 @@ namespace CaseStudy.Shared.AbilitySystem.Events
         public float CurrentEnergy { get; }
 
         public float MaxEnergy { get; }
+    }
+
+    public readonly struct AbilityLoadoutSlotAssignedEvent
+    {
+        public AbilityLoadoutSlotAssignedEvent(AbilitySlot slot, AbilityId abilityId, Sprite icon)
+        {
+            Slot = slot;
+            AbilityId = abilityId;
+            Icon = icon;
+        }
+
+        public AbilitySlot Slot { get; }
+
+        public AbilityId AbilityId { get; }
+
+        public Sprite Icon { get; }
     }
 
     public enum AbilityFailureReason
