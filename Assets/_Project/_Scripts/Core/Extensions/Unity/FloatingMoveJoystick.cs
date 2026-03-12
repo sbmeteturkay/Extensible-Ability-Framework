@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch; 
 
+// 2. ADIM: Eski Touch ile karışmaması için bunu ekle
+using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 /// <summary>
 /// Completely standalone floating joystick view driven by a move InputAction.
 /// When move input starts, joystick root snaps to pointer position and stays there until input is released.
@@ -58,7 +61,9 @@ public sealed class FloatingMoveJoystick : MonoBehaviour
         {
             return;
         }
-
+        
+        if (Touch.activeTouches.Count <= 0) return;
+        
         UpdateKnobTowardsPointer();
     }
 
@@ -70,6 +75,7 @@ public sealed class FloatingMoveJoystick : MonoBehaviour
             return;
         }
 
+        if (Touch.activeTouches.Count <= 0) return;
         if (!_isActive)
         {
             _isActive = true;
@@ -88,6 +94,8 @@ public sealed class FloatingMoveJoystick : MonoBehaviour
         {
             return;
         }
+        
+        if (Touch.activeTouches.Count <= 0) return;
 
         RectTransform parentRect = _root.parent as RectTransform;
         if (parentRect == null)
