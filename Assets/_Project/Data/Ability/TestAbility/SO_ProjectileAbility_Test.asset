@@ -25,6 +25,6 @@ MonoBehaviour:
   _projectilePrefab: {fileID: 3256030433253130741, guid: 91da0bdcf08d94d4fb8d80f7dd7010af, type: 3}
   _impactVfxPrefab: {fileID: 0}
   _projectileSpeed: 16
-  _maxLifeTimeSeconds: 3
+  _maxLifeTimeSeconds: 2
   _maxPoolSize: 24
   _spawnForwardOffset: 1

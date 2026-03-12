@@ -1,5 +1,6 @@
 namespace CaseStudy.Feature.AbilitySystem.Domain
 {
+    //todo shit
     public enum AbilitySlot
     {
         Primary = 0,

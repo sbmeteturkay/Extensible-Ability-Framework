@@ -22,7 +22,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   _castVfxPrefab: {fileID: 0}
   _castSfx: {fileID: 0}
-  _dashDistance: 4
+  _dashDistance: 3
   _dashDurationSeconds: 0.2
   _disableRegularMovement: 1
   _speedCurve:
@@ -30,21 +30,21 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
+      value: 0
+      inSlope: 1.4698083
+      outSlope: 1
+      tangentMode: 65
       weightedMode: 0
       inWeight: 0
-      outWeight: 0
+      outWeight: 0.05049912
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
+      inSlope: 1
+      outSlope: 1.0886449
+      tangentMode: 5
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.022313535
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2

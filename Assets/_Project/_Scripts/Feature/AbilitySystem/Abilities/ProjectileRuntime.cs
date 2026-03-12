@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Abilities
 { 
-    //todo: refactor this
     /// <summary>
     /// Runtime projectile behaviour: movement, collision handling, lifetime, and pool return.
     /// </summary>

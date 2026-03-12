@@ -1,9 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CaseStudy.Feature.AbilitySystem.Abilities;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Data;
 using CaseStudy.Feature.AbilitySystem.Domain;
 using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.Locomotion.Interfaces;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
@@ -25,18 +26,25 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         private ICooldownService _cooldownService;
         private IEnergyService _energyService;
         private IPublisher<AbilityLoadoutSlotAssignedEvent> _slotAssignedPublisher;
+        private ILocomotionLockService _locomotionLockService;
 
         [Inject]
         public void Construct(
             IAbilityController abilityController,
             ICooldownService cooldownService,
             IEnergyService energyService,
-            IPublisher<AbilityLoadoutSlotAssignedEvent> slotAssignedPublisher)
+            IPublisher<AbilityLoadoutSlotAssignedEvent> slotAssignedPublisher,
+            IObjectResolver resolver)
         {
             _abilityController = abilityController;
             _cooldownService = cooldownService;
             _energyService = energyService;
             _slotAssignedPublisher = slotAssignedPublisher;
+
+            if (resolver != null)
+            {
+                resolver.TryResolve<ILocomotionLockService>(out _locomotionLockService);
+            }
         }
 
         private void Awake()
@@ -82,7 +90,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                 { AbilitySlot.Utility, GetValidatedData(AbilitySlot.Utility) }
             };
 
-            var context = new AbilityContext(_ownerTransform, _ownerRigidbody, _cooldownService, _energyService);
+            var context = new AbilityContext(_ownerTransform, _ownerRigidbody, _cooldownService, _energyService, _locomotionLockService);
             _abilityController.Configure(mapping, context);
 
             PublishSlotIfAvailable(AbilitySlot.Primary, mapping[AbilitySlot.Primary]);
