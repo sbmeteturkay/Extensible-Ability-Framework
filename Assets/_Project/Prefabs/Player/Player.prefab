@@ -75,7 +75,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.Locomotion.Installers.LocomotionLifetimeScope
   parentReference:
-    TypeName: 
+    TypeName: CaseStudy.Core.Installers.PlayerLifetimeScope
   autoRun: 1
   autoInjectGameObjects: []
 --- !u!1 &876449926365080036
@@ -178,6 +178,7 @@ GameObject:
   m_Component:
   - component: {fileID: 916414814232330059}
   - component: {fileID: 5569660900266239842}
+  - component: {fileID: 8661310199841381500}
   m_Layer: 0
   m_Name: Ability
   m_TagString: Untagged
@@ -215,6 +216,22 @@ MonoBehaviour:
   _ownerTransform: {fileID: 7658783902470862845}
   _ownerRigidbody: {fileID: 3461777411648705500}
   _loadout: {fileID: 11400000, guid: d540605823e8c884d9bf850c0b00f763, type: 2}
+--- !u!114 &8661310199841381500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1086628276852095605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b21bcb47acfec246bcab48eb6dc8754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AbilityPlayerLifetimeScope
+  parentReference:
+    TypeName: CaseStudy.Core.Installers.PlayerLifetimeScope
+  autoRun: 1
+  autoInjectGameObjects: []
 --- !u!1 &2430989588166017022
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,6 +274,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2101836275408731605}
   - component: {fileID: 8876873359116821301}
+  - component: {fileID: 7512261477798464604}
   m_Layer: 0
   m_Name: Animation
   m_TagString: Untagged
@@ -292,9 +310,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimationLifetimeScope
   parentReference:
-    TypeName: 
+    TypeName: CaseStudy.Core.Installers.PlayerLifetimeScope
   autoRun: 1
   autoInjectGameObjects: []
+--- !u!114 &7512261477798464604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5543252928782843231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 225d6b42584848645ac86af024e7e823, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.Animation.Runtime.PlayerAnimationDriver
+  _ownerTransform: {fileID: 7658783902470862845}
+  _ownerRigidbody: {fileID: 3461777411648705500}
+  _ownerAnimator: {fileID: 5984311407368618758}
+  _config: {fileID: 11400000, guid: 3b61d604badb8e749866c3820e422bf4, type: 2}
 --- !u!1 &6689036029670506639
 GameObject:
   m_ObjectHideFlags: 0
@@ -388,7 +422,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 0
 --- !u!136 &5879802101155113866
 CapsuleCollider:
@@ -444,6 +478,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1018875362887687109}
+  - component: {fileID: 7810275230362977215}
   m_Layer: 0
   m_Name: Features
   m_TagString: Untagged
@@ -469,3 +504,19 @@ Transform:
   - {fileID: 2101836275408731605}
   m_Father: {fileID: 7658783902470862845}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7810275230362977215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8542846871169050385}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0530d482c4fd3e48ab2ac7cff31d50c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Core.Installers.PlayerLifetimeScope
+  parentReference:
+    TypeName: CaseStudy.Core.Installers.GamePlayLifetimeScope
+  autoRun: 1
+  autoInjectGameObjects: []

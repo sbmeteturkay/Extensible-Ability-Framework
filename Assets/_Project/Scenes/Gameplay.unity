@@ -622,27 +622,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!1 &399771237 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2013980982711051990, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-  m_PrefabInstance: {fileID: 1221566924}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &399771239
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 399771237}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 225d6b42584848645ac86af024e7e823, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.Animation.Runtime.PlayerAnimationDriver
-  _ownerTransform: {fileID: 1221566925}
-  _ownerRigidbody: {fileID: 1450888870}
-  _ownerAnimator: {fileID: 1450888871}
-  _config: {fileID: 11400000, guid: 3b61d604badb8e749866c3820e422bf4, type: 2}
 --- !u!1 &404154231
 GameObject:
   m_ObjectHideFlags: 0
@@ -797,27 +776,6 @@ MonoBehaviour:
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
---- !u!1 &561419207 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6344151901976994300, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-  m_PrefabInstance: {fileID: 1221566924}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &561419210
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 561419207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b21bcb47acfec246bcab48eb6dc8754, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AbilityPlayerLifetimeScope
-  parentReference:
-    TypeName: CaseStudy.Core.Installers.PlayerLifetimeScope
-  autoRun: 1
-  autoInjectGameObjects: []
 --- !u!1 &660147252
 GameObject:
   m_ObjectHideFlags: 0
@@ -1007,14 +965,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1706207585}
     m_Modifications:
-    - target: {fileID: 2418652715330206872, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-      propertyPath: m_Name
-      value: PlayerScope
-      objectReference: {fileID: 0}
-    - target: {fileID: 3183608885912385724, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-      propertyPath: parentReference.TypeName
-      value: CaseStudy.Core.Installers.PlayerLifetimeScope
-      objectReference: {fileID: 0}
+    - target: {fileID: 1897677043783220459, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
+      propertyPath: _loadout
+      value: 
+      objectReference: {fileID: 11400000, guid: c1f8190f5a51a9f4d822bd973d6c21cb, type: 2}
     - target: {fileID: 4131643183905176211, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
       propertyPath: m_Name
       value: Giant
@@ -1059,29 +1013,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5809402440477989334, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-      propertyPath: parentReference.TypeName
-      value: CaseStudy.Core.Installers.PlayerLifetimeScope
-      objectReference: {fileID: 0}
-    - target: {fileID: 7427625548015601749, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-      propertyPath: m_Constraints
-      value: 80
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 0}
-    - {fileID: 5007866116294257493, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 2418652715330206872, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2102366459}
-    - targetCorrespondingSourceObject: {fileID: 6344151901976994300, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 561419210}
-    - targetCorrespondingSourceObject: {fileID: 2013980982711051990, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 399771239}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
 --- !u!4 &1221566925 stripped
 Transform:
@@ -1260,16 +1195,6 @@ Transform:
   - {fileID: 1198652803}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &1450888870 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 7427625548015601749, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-  m_PrefabInstance: {fileID: 1221566924}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &1450888871 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 293303140941994127, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-  m_PrefabInstance: {fileID: 1221566924}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1529544388
 GameObject:
   m_ObjectHideFlags: 0
@@ -1790,27 +1715,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0.000030517578, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &2102366457 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2418652715330206872, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
-  m_PrefabInstance: {fileID: 1221566924}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2102366459
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2102366457}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c0530d482c4fd3e48ab2ac7cff31d50c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Core.Installers.PlayerLifetimeScope
-  parentReference:
-    TypeName: CaseStudy.Core.Installers.GamePlayLifetimeScope
-  autoRun: 1
-  autoInjectGameObjects: []
 --- !u!1 &2103972508
 GameObject:
   m_ObjectHideFlags: 0

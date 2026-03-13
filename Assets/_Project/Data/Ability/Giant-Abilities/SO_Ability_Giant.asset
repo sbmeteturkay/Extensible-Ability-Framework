@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e08993bfddd22fb4981ef7a096ac1d8b, type: 3}
+  m_Name: SO_Ability_Giant
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityLoadoutSO
+  _primary: {fileID: 11400000, guid: df298a30ad71e41498ec55ee1f67f686, type: 2}
+  _secondary: {fileID: 11400000, guid: de1cc896ad1d86243862dfaa565d6e0f, type: 2}
+  _utility: {fileID: 11400000, guid: 56a7e2b6c777a6842bfb5be8e58e8ef2, type: 2}
