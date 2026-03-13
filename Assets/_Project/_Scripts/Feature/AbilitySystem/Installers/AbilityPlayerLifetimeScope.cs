@@ -1,24 +1,20 @@
 ﻿using CaseStudy.Feature.AbilitySystem.Contracts;
-using CaseStudy.Feature.AbilitySystem.Input;
 using CaseStudy.Feature.AbilitySystem.Runtime;
 using CaseStudy.Feature.AbilitySystem.Services;
-using CaseStudy.Feature.AbilitySystem.UI;
 using VContainer;
 using VContainer.Unity;
 
 namespace CaseStudy.Feature.AbilitySystem.Installers
 {
     /// <summary>
-    /// Feature-local DI scope for the ability system.
-    /// Requires a parent gameplay scope that registers shared MessagePipe brokers.
+    /// Player-side scope for ability runtime and domain services.
+    /// Place this under player prefab feature hierarchy.
     /// </summary>
-    public sealed class AbilitySystemLifetimeScope : LifetimeScope
+    public sealed class AbilityPlayerLifetimeScope : LifetimeScope
     {
         protected override void Configure(IContainerBuilder builder)
         {
             builder.RegisterComponentInHierarchy<AbilityRuntimeBootstrap>();
-            builder.RegisterComponentInHierarchy<AbilityInputGateway>();
-            builder.RegisterComponentInHierarchy<AbilityHudPresenter>();
 
             builder.Register<CooldownService>(Lifetime.Singleton);
             builder.Register<ICooldownService>(resolver => resolver.Resolve<CooldownService>(), Lifetime.Singleton);

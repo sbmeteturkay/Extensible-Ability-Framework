@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Domain;
 using CaseStudy.Shared.AbilitySystem.Events;
 using MessagePipe;
@@ -11,12 +10,14 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 {
     /// <summary>
     /// Bridges ability events to HUD updates and publishes slot click triggers.
+    /// Scene-safe: depends on shared event stream, not player-side services.
     /// </summary>
     public sealed class AbilityHudPresenter : MonoBehaviour
     {
+        private const float FALLBACK_INITIAL_MAX_ENERGY = 100f;
+
         [SerializeField] private AbilityHudView _view;
 
-        private IEnergyService _energyService;
         private IPublisher<AbilityTriggerRequestedEvent> _triggerPublisher;
         private ISubscriber<AbilityLoadoutSlotAssignedEvent> _slotAssignedSubscriber;
         private ISubscriber<AbilityEnergyChangedEvent> _energySubscriber;
@@ -34,7 +35,6 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
         [Inject]
         public void Construct(
-            IEnergyService energyService,
             IPublisher<AbilityTriggerRequestedEvent> triggerPublisher,
             ISubscriber<AbilityLoadoutSlotAssignedEvent> slotAssignedSubscriber,
             ISubscriber<AbilityEnergyChangedEvent> energySubscriber,
@@ -42,7 +42,6 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             ISubscriber<AbilityCooldownUpdatedEvent> cooldownUpdatedSubscriber,
             ISubscriber<AbilityCooldownCompletedEvent> cooldownCompletedSubscriber)
         {
-            _energyService = energyService;
             _triggerPublisher = triggerPublisher;
             _slotAssignedSubscriber = slotAssignedSubscriber;
             _energySubscriber = energySubscriber;
@@ -68,8 +67,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
                 return;
             }
 
-            if (_energyService == null
-                || _triggerPublisher == null
+            if (_triggerPublisher == null
                 || _slotAssignedSubscriber == null
                 || _energySubscriber == null
                 || _cooldownStartedSubscriber == null
@@ -80,6 +78,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
                 enabled = false;
                 return;
             }
+
             _view.SetTriggerCallback(OnSlotClicked);
 
             _slotAssignedSubscription = _slotAssignedSubscriber.Subscribe(OnSlotAssigned);
@@ -88,7 +87,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             _cooldownUpdatedSubscription = _cooldownUpdatedSubscriber.Subscribe(OnCooldownUpdated);
             _cooldownCompletedSubscription = _cooldownCompletedSubscriber.Subscribe(OnCooldownCompleted);
 
-            _view.SetEnergy(_energyService.CurrentEnergy, _energyService.MaxEnergy);
+            _view.SetEnergy(FALLBACK_INITIAL_MAX_ENERGY, FALLBACK_INITIAL_MAX_ENERGY);
         }
 
         private void OnDisable()

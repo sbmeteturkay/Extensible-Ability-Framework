@@ -332,7 +332,7 @@ GameObject:
   - component: {fileID: 309793426}
   - component: {fileID: 309793427}
   m_Layer: 0
-  m_Name: Scopes
+  m_Name: SceneScopes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -797,6 +797,27 @@ MonoBehaviour:
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
+--- !u!1 &561419207 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6344151901976994300, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
+  m_PrefabInstance: {fileID: 1221566924}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &561419210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 561419207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b21bcb47acfec246bcab48eb6dc8754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AbilityPlayerLifetimeScope
+  parentReference:
+    TypeName: CaseStudy.Core.Installers.PlayerLifetimeScope
+  autoRun: 1
+  autoInjectGameObjects: []
 --- !u!1 &660147252
 GameObject:
   m_ObjectHideFlags: 0
@@ -986,9 +1007,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1706207585}
     m_Modifications:
+    - target: {fileID: 2418652715330206872, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
+      propertyPath: m_Name
+      value: PlayerScope
+      objectReference: {fileID: 0}
     - target: {fileID: 3183608885912385724, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
       propertyPath: parentReference.TypeName
-      value: CaseStudy.Core.Installers.GamePlayLifetimeScope
+      value: CaseStudy.Core.Installers.PlayerLifetimeScope
       objectReference: {fileID: 0}
     - target: {fileID: 4131643183905176211, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
       propertyPath: m_Name
@@ -1034,6 +1059,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5809402440477989334, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
+      propertyPath: parentReference.TypeName
+      value: CaseStudy.Core.Installers.PlayerLifetimeScope
+      objectReference: {fileID: 0}
     - target: {fileID: 7427625548015601749, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
       propertyPath: m_Constraints
       value: 80
@@ -1044,6 +1073,12 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2418652715330206872, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2102366459}
+    - targetCorrespondingSourceObject: {fileID: 6344151901976994300, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 561419210}
     - targetCorrespondingSourceObject: {fileID: 2013980982711051990, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
       insertIndex: -1
       addedObject: {fileID: 399771239}
@@ -1755,6 +1790,27 @@ RectTransform:
   m_AnchoredPosition: {x: 0.000030517578, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &2102366457 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2418652715330206872, guid: 0d8a96a1730a2eb42ae6d445e055e090, type: 3}
+  m_PrefabInstance: {fileID: 1221566924}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2102366459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2102366457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0530d482c4fd3e48ab2ac7cff31d50c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Core.Installers.PlayerLifetimeScope
+  parentReference:
+    TypeName: CaseStudy.Core.Installers.GamePlayLifetimeScope
+  autoRun: 1
+  autoInjectGameObjects: []
 --- !u!1 &2103972508
 GameObject:
   m_ObjectHideFlags: 0
@@ -1796,9 +1852,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2103972508}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6052fd7977c6aef46becb2892db49cc6, type: 3}
+  m_Script: {fileID: 11500000, guid: 2135154b7a89ac3439dbcc5ada18af97, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AbilitySystemLifetimeScope
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Installers.AbilitySceneLifetimeScope
   parentReference:
     TypeName: CaseStudy.Core.Installers.GamePlayLifetimeScope
   autoRun: 1
