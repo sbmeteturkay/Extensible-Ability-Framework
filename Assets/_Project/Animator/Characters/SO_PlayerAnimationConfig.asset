@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c76f551c6beb0bc4298ad265a03368b0, type: 3}
+  m_Name: SO_PlayerAnimationConfig
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.Animation.Data.PlayerAnimationConfigSO
+  _moveXParam: MoveX
+  _moveYParam: MoveY
+  _speedParam: Speed
+  _isMovingParam: IsMoving
+  _referenceMoveSpeed: 6
+  _movingThreshold: 1
+  _movingHoldSeconds: 0.1
+  _useDamping: 0
+  _moveXDampTime: 0.08
+  _moveYDampTime: 0.08
+  _speedDampTime: 0.06
+  _abilityUsedTriggerParam: AbilityUsed
+  _abilityIndexIntParam: AbilityIndex
