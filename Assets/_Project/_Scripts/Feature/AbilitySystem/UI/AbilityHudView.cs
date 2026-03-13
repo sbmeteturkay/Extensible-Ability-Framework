@@ -1,4 +1,3 @@
-using CaseStudy.Feature.AbilitySystem.Domain;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,7 +16,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
         [Header("Slot Widgets")]
         [SerializeField] private AbilityHudSlotWidget[] _slotWidgets;
 
-        public void SetTriggerCallback(System.Action<AbilitySlot> triggerCallback)
+        public void SetTriggerCallback(System.Action<string> triggerCallback)
         {
             if (_slotWidgets == null)
             {
@@ -52,9 +51,9 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             }
         }
 
-        public void BindSlot(AbilitySlot slot, Sprite icon)
+        public void BindSlot(string slotKey, Sprite icon)
         {
-            AbilityHudSlotWidget widget = FindWidget(slot);
+            AbilityHudSlotWidget widget = FindWidget(slotKey);
             if (widget == null)
             {
                 return;
@@ -64,9 +63,9 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             widget.ClearCooldown();
         }
 
-        public void SetCooldown(AbilitySlot slot, float remainingSeconds, float normalizedRemaining)
+        public void SetCooldown(string slotKey, float remainingSeconds, float normalizedRemaining)
         {
-            AbilityHudSlotWidget widget = FindWidget(slot);
+            AbilityHudSlotWidget widget = FindWidget(slotKey);
             if (widget == null)
             {
                 return;
@@ -75,9 +74,9 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             widget.SetCooldown(remainingSeconds, normalizedRemaining);
         }
 
-        public void ClearCooldown(AbilitySlot slot)
+        public void ClearCooldown(string slotKey)
         {
-            AbilityHudSlotWidget widget = FindWidget(slot);
+            AbilityHudSlotWidget widget = FindWidget(slotKey);
             if (widget == null)
             {
                 return;
@@ -86,9 +85,10 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             widget.ClearCooldown();
         }
 
-        private AbilityHudSlotWidget FindWidget(AbilitySlot slot)
+        private AbilityHudSlotWidget FindWidget(string slotKey)
         {
-            if (_slotWidgets == null)
+            slotKey = NormalizeKey(slotKey);
+            if (_slotWidgets == null || string.IsNullOrWhiteSpace(slotKey))
             {
                 return null;
             }
@@ -97,13 +97,24 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             for (int i = 0; i < count; i++)
             {
                 AbilityHudSlotWidget widget = _slotWidgets[i];
-                if (widget != null && widget.Slot == slot)
+                if (widget == null)
+                {
+                    continue;
+                }
+
+                string widgetSlotKey = NormalizeKey(widget.SlotKey);
+                if (widgetSlotKey == slotKey)
                 {
                     return widget;
                 }
             }
 
             return null;
+        }
+
+        private static string NormalizeKey(string key)
+        {
+            return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
         }
     }
 }

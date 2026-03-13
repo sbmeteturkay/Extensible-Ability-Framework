@@ -6,10 +6,10 @@ namespace CaseStudy.Feature.AbilitySystem.Contracts
 {
     public interface IAbilityController
     {
-        void Configure(IReadOnlyDictionary<AbilitySlot, AbilityDataSO> loadout, AbilityContext context);
+        void Configure(IReadOnlyDictionary<string, AbilityDataSO> loadout, AbilityContext context);
 
-        bool TryTrigger(AbilitySlot slot);
+        bool TryTrigger(string slotKey);
 
-        float GetCooldownRemaining(AbilityId abilityId);
+        float GetCooldownRemaining(string abilityKey);
     }
 }

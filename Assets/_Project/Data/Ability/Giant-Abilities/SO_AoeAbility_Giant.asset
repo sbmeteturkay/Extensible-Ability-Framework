@@ -12,18 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 885a8a7fd1870a14f9d8765231cc62ed, type: 3}
   m_Name: SO_AoeAbility_Giant
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AoeAbilityDataSO
-  _abilityId: 2
+  _abilityKey: df298a30ad71e41498ec55ee1f67f686
   _displayName: New Ability
   _icon: {fileID: 21300000, guid: 4ca665255adc0204585931b317f67500, type: 3}
   _cooldownSeconds: 1
   _energyCost: 10
-  _affectedLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
+  _targetGroups: 4
+  _movementPolicy: 1
+  _minimumMovementLockDurationSeconds: 0.5
   _castVfxPrefab: {fileID: 0}
   _castSfx: {fileID: 0}
   _radius: 3
   _effectDurationSeconds: 1
   _maxTargets: 32
   _aoeVfxPrefab: {fileID: 4994997792314849709, guid: 3dd50886582244645be87adb42aa8528, type: 3}
+  _aoeVfxDelaySeconds: 0.2
+  _aoeVfxAutoReturnSeconds: 1
   _debugColor: {r: 0, g: 1, b: 1, a: 1}

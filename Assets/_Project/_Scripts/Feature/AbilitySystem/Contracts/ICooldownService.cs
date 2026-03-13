@@ -1,13 +1,11 @@
-using CaseStudy.Feature.AbilitySystem.Domain;
-
 namespace CaseStudy.Feature.AbilitySystem.Contracts
 {
     public interface ICooldownService
     {
-        bool IsReady(AbilityId abilityId);
+        bool IsReady(string abilityKey);
 
-        void StartCooldown(AbilityId abilityId, float durationSeconds);
+        void StartCooldown(string abilityKey, float durationSeconds);
 
-        float GetRemaining(AbilityId abilityId);
+        float GetRemaining(string abilityKey);
     }
 }

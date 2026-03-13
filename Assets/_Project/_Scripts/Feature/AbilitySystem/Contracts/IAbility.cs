@@ -7,7 +7,7 @@ namespace CaseStudy.Feature.AbilitySystem.Contracts
 {
     public interface IAbility
     {
-        AbilityId Id { get; }
+        string AbilityKey { get; }
 
         void Initialize(AbilityContext context, AbilityDataSO data);
 

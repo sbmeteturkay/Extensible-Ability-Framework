@@ -1,64 +1,63 @@
-using CaseStudy.Feature.AbilitySystem.Domain;
 using UnityEngine;
 
 namespace CaseStudy.Shared.AbilitySystem.Events
 {
     public readonly struct AbilityTriggerRequestedEvent
     {
-        public AbilityTriggerRequestedEvent(AbilitySlot slot)
+        public AbilityTriggerRequestedEvent(string slotKey)
         {
-            Slot = slot;
+            SlotKey = slotKey;
         }
 
-        public AbilitySlot Slot { get; }
+        public string SlotKey { get; }
     }
 
     public readonly struct AbilityTriggeredEvent
     {
-        public AbilityTriggeredEvent(AbilityId abilityId)
+        public AbilityTriggeredEvent(string abilityKey)
         {
-            AbilityId = abilityId;
+            AbilityKey = abilityKey;
         }
 
-        public AbilityId AbilityId { get; }
+        public string AbilityKey { get; }
     }
 
     public readonly struct AbilityExecutionFailedEvent
     {
-        public AbilityExecutionFailedEvent(AbilityId abilityId, AbilityFailureReason reason)
+        public AbilityExecutionFailedEvent(string abilityKey, AbilityFailureReason reason)
         {
-            AbilityId = abilityId;
+            AbilityKey = abilityKey;
             Reason = reason;
         }
 
-        public AbilityId AbilityId { get; }
+        public string AbilityKey { get; }
 
         public AbilityFailureReason Reason { get; }
     }
 
     public readonly struct AbilityCooldownStartedEvent
     {
-        public AbilityCooldownStartedEvent(AbilityId abilityId, float durationSeconds)
+        public AbilityCooldownStartedEvent(string abilityKey, float durationSeconds)
         {
-            AbilityId = abilityId;
+            AbilityKey = abilityKey;
             DurationSeconds = durationSeconds;
         }
 
-        public AbilityId AbilityId { get; }
+        public string AbilityKey { get; }
 
         public float DurationSeconds { get; }
     }
 
     public readonly struct AbilityCooldownUpdatedEvent
     {
-        public AbilityCooldownUpdatedEvent(AbilityId abilityId, float remainingSeconds, float normalizedRemaining)
+        public AbilityCooldownUpdatedEvent(string abilityKey, float remainingSeconds, float normalizedRemaining)
         {
-            AbilityId = abilityId;
+            AbilityKey = abilityKey;
             RemainingSeconds = remainingSeconds;
             NormalizedRemaining = normalizedRemaining;
         }
 
-        public AbilityId AbilityId { get; }
+        public string AbilityKey { get; }
 
         public float RemainingSeconds { get; }
 
@@ -67,12 +66,12 @@ namespace CaseStudy.Shared.AbilitySystem.Events
 
     public readonly struct AbilityCooldownCompletedEvent
     {
-        public AbilityCooldownCompletedEvent(AbilityId abilityId)
+        public AbilityCooldownCompletedEvent(string abilityKey)
         {
-            AbilityId = abilityId;
+            AbilityKey = abilityKey;
         }
 
-        public AbilityId AbilityId { get; }
+        public string AbilityKey { get; }
     }
 
     public readonly struct AbilityEnergyChangedEvent
@@ -90,16 +89,16 @@ namespace CaseStudy.Shared.AbilitySystem.Events
 
     public readonly struct AbilityLoadoutSlotAssignedEvent
     {
-        public AbilityLoadoutSlotAssignedEvent(AbilitySlot slot, AbilityId abilityId, Sprite icon)
+        public AbilityLoadoutSlotAssignedEvent(string slotKey, string abilityKey, Sprite icon)
         {
-            Slot = slot;
-            AbilityId = abilityId;
+            SlotKey = slotKey;
+            AbilityKey = abilityKey;
             Icon = icon;
         }
 
-        public AbilitySlot Slot { get; }
+        public string SlotKey { get; }
 
-        public AbilityId AbilityId { get; }
+        public string AbilityKey { get; }
 
         public Sprite Icon { get; }
     }

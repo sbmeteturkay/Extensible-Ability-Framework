@@ -12,19 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eae9da29d4edd424ba70cbdcdb65e8d8, type: 3}
   m_Name: SO_DashAbility_Test
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.DashAbilityDataSO
-  _abilityId: 3
+  _abilityKey: d1ae896ad6b09f446aca9cada2e9e1a0
   _displayName: New Ability
   _icon: {fileID: 21300000, guid: b00564e353aca3e4a853c66d5568c6ca, type: 3}
   _cooldownSeconds: 1
   _energyCost: 20
-  _affectedLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
+  _targetGroups: 4
+  _movementPolicy: 1
   _castVfxPrefab: {fileID: 0}
   _castSfx: {fileID: 0}
   _dashDistance: 3
   _dashDurationSeconds: 0.2
-  _disableRegularMovement: 1
+  _legacyDisableRegularMovement: 1
   _speedCurve:
     serializedVersion: 2
     m_Curve:

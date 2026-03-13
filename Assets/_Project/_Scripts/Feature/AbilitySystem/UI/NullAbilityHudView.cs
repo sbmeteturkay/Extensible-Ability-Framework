@@ -1,5 +1,3 @@
-using CaseStudy.Feature.AbilitySystem.Domain;
-
 namespace CaseStudy.Feature.AbilitySystem.UI
 {
     /// <summary>
@@ -11,11 +9,11 @@ namespace CaseStudy.Feature.AbilitySystem.UI
         {
         }
 
-        public void SetCooldown(AbilityId abilityId, float remainingSeconds, float normalizedRemaining)
+        public void SetCooldown(string abilityKey, float remainingSeconds, float normalizedRemaining)
         {
         }
 
-        public void ClearCooldown(AbilityId abilityId)
+        public void ClearCooldown(string abilityKey)
         {
         }
     }

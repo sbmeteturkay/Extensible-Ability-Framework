@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using CaseStudy.Feature.AbilitySystem.Contracts;
-using CaseStudy.Feature.AbilitySystem.Domain;
 using CaseStudy.Shared.AbilitySystem.Events;
 using MessagePipe;
 using UnityEngine;
@@ -26,8 +25,8 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             public float Duration { get; }
         }
 
-        private readonly Dictionary<AbilityId, CooldownState> _states = new();
-        private readonly List<AbilityId> _completedBuffer = new(8);
+        private readonly Dictionary<string, CooldownState> _states = new();
+        private readonly List<string> _completedBuffer = new(8);
         private readonly IPublisher<AbilityCooldownStartedEvent> _cooldownStartedPublisher;
         private readonly IPublisher<AbilityCooldownUpdatedEvent> _cooldownUpdatedPublisher;
         private readonly IPublisher<AbilityCooldownCompletedEvent> _cooldownCompletedPublisher;
@@ -52,7 +51,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             _completedBuffer.Clear();
             float now = Time.time;
 
-            foreach (KeyValuePair<AbilityId, CooldownState> pair in _states)
+            foreach (KeyValuePair<string, CooldownState> pair in _states)
             {
                 float remaining = pair.Value.EndTime - now;
 
@@ -73,36 +72,51 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             int completedCount = _completedBuffer.Count;
             for (int i = 0; i < completedCount; i++)
             {
-                AbilityId abilityId = _completedBuffer[i];
-                _states.Remove(abilityId);
-                _cooldownCompletedPublisher.Publish(new AbilityCooldownCompletedEvent(abilityId));
+                string abilityKey = _completedBuffer[i];
+                _states.Remove(abilityKey);
+                _cooldownCompletedPublisher.Publish(new AbilityCooldownCompletedEvent(abilityKey));
             }
         }
 
-        public bool IsReady(AbilityId abilityId)
+        public bool IsReady(string abilityKey)
         {
-            return GetRemaining(abilityId) <= 0f;
+            if (string.IsNullOrWhiteSpace(abilityKey))
+            {
+                return false;
+            }
+
+            return GetRemaining(abilityKey) <= 0f;
         }
 
-        public void StartCooldown(AbilityId abilityId, float durationSeconds)
+        public void StartCooldown(string abilityKey, float durationSeconds)
         {
+            if (string.IsNullOrWhiteSpace(abilityKey))
+            {
+                return;
+            }
+
             float duration = Mathf.Max(0f, durationSeconds);
 
             if (duration <= 0f)
             {
-                _states.Remove(abilityId);
-                _cooldownCompletedPublisher.Publish(new AbilityCooldownCompletedEvent(abilityId));
+                _states.Remove(abilityKey);
+                _cooldownCompletedPublisher.Publish(new AbilityCooldownCompletedEvent(abilityKey));
                 return;
             }
 
             float endTime = Time.time + duration;
-            _states[abilityId] = new CooldownState(endTime, duration);
-            _cooldownStartedPublisher.Publish(new AbilityCooldownStartedEvent(abilityId, duration));
+            _states[abilityKey] = new CooldownState(endTime, duration);
+            _cooldownStartedPublisher.Publish(new AbilityCooldownStartedEvent(abilityKey, duration));
         }
 
-        public float GetRemaining(AbilityId abilityId)
+        public float GetRemaining(string abilityKey)
         {
-            if (!_states.TryGetValue(abilityId, out CooldownState state))
+            if (string.IsNullOrWhiteSpace(abilityKey))
+            {
+                return 0f;
+            }
+
+            if (!_states.TryGetValue(abilityKey, out CooldownState state))
             {
                 return 0f;
             }
@@ -110,8 +124,8 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             float remaining = state.EndTime - Time.time;
             if (remaining <= 0f)
             {
-                _states.Remove(abilityId);
-                _cooldownCompletedPublisher.Publish(new AbilityCooldownCompletedEvent(abilityId));
+                _states.Remove(abilityKey);
+                _cooldownCompletedPublisher.Publish(new AbilityCooldownCompletedEvent(abilityKey));
                 return 0f;
             }
 

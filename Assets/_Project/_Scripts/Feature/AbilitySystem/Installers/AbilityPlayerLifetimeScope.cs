@@ -1,6 +1,8 @@
-﻿using CaseStudy.Feature.AbilitySystem.Contracts;
+using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Runtime;
 using CaseStudy.Feature.AbilitySystem.Services;
+using CaseStudy.Shared.Vfx.Interfaces;
+using CaseStudy.Shared.Vfx.Services;
 using VContainer;
 using VContainer.Unity;
 
@@ -23,6 +25,9 @@ namespace CaseStudy.Feature.AbilitySystem.Installers
             builder.Register<EnergyService>(Lifetime.Singleton);
             builder.Register<IEnergyService>(resolver => resolver.Resolve<EnergyService>(), Lifetime.Singleton);
             builder.RegisterEntryPoint<EnergyService>();
+
+            builder.Register<PooledVfxService>(Lifetime.Singleton);
+            builder.Register<IPooledVfxService>(resolver => resolver.Resolve<PooledVfxService>(), Lifetime.Singleton);
 
             builder.Register<IAbilityFactory, AbilityFactory>(Lifetime.Singleton);
             builder.Register<AbilityController>(Lifetime.Singleton);

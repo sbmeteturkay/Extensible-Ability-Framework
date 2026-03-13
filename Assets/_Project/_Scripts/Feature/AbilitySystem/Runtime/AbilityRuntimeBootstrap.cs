@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using CaseStudy.Feature.AbilitySystem.Abilities;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Data;
-using CaseStudy.Feature.AbilitySystem.Domain;
 using CaseStudy.Shared.AbilitySystem.Events;
 using CaseStudy.Shared.Locomotion.Interfaces;
 using MessagePipe;
@@ -21,6 +21,9 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         [SerializeField] private Transform _ownerTransform;
         [SerializeField] private Rigidbody _ownerRigidbody;
         [SerializeField] private AbilityLoadoutSO _loadout;
+        [SerializeField] private AbilityTargetingProfileSO _targetingProfile;
+
+        private readonly List<AbilityLoadoutSO.AbilityLoadoutEntry> _loadoutBuffer = new(4);
 
         private IAbilityController _abilityController;
         private ICooldownService _cooldownService;
@@ -83,33 +86,77 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                 return;
             }
 
-            var mapping = new Dictionary<AbilitySlot, AbilityDataSO>(3)
+            if (_targetingProfile == null)
             {
-                { AbilitySlot.Primary, GetValidatedData(AbilitySlot.Primary) },
-                { AbilitySlot.Secondary, GetValidatedData(AbilitySlot.Secondary) },
-                { AbilitySlot.Utility, GetValidatedData(AbilitySlot.Utility) }
-            };
+                Debug.LogWarning("AbilityRuntimeBootstrap: targeting profile is not set. Ability target layers will fallback to all layers.");
+            }
 
-            var context = new AbilityContext(_ownerTransform, _ownerRigidbody, _cooldownService, _energyService, _locomotionLockService);
+            int slotCount = _loadout.GetConfiguredSlots(_loadoutBuffer);
+            if (slotCount <= 0)
+            {
+                Debug.LogWarning("AbilityRuntimeBootstrap: no configured ability slots in loadout.");
+                enabled = false;
+                return;
+            }
+
+            var mapping = new Dictionary<string, AbilityDataSO>(slotCount, StringComparer.Ordinal);
+
+            for (int i = 0; i < slotCount; i++)
+            {
+                AbilityLoadoutSO.AbilityLoadoutEntry entry = _loadoutBuffer[i];
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                string slotKey = NormalizeKey(entry.SlotKey);
+                AbilityDataSO validatedData = GetValidatedData(slotKey, entry.AbilityData);
+                if (validatedData == null)
+                {
+                    continue;
+                }
+
+                if (mapping.ContainsKey(slotKey))
+                {
+                    Debug.LogWarning($"AbilityRuntimeBootstrap: duplicate slot key '{slotKey}' in loadout. Last ability wins.");
+                }
+
+                mapping[slotKey] = validatedData;
+            }
+
+            var context = new Domain.AbilityContext(
+                _ownerTransform,
+                _ownerRigidbody,
+                _cooldownService,
+                _energyService,
+                _locomotionLockService,
+                _targetingProfile);
+
             _abilityController.Configure(mapping, context);
 
-            PublishSlotIfAvailable(AbilitySlot.Primary, mapping[AbilitySlot.Primary]);
-            PublishSlotIfAvailable(AbilitySlot.Secondary, mapping[AbilitySlot.Secondary]);
-            PublishSlotIfAvailable(AbilitySlot.Utility, mapping[AbilitySlot.Utility]);
+            foreach (KeyValuePair<string, AbilityDataSO> pair in mapping)
+            {
+                _slotAssignedPublisher.Publish(new AbilityLoadoutSlotAssignedEvent(pair.Key, pair.Value.AbilityKey, pair.Value.Icon));
+            }
         }
 
-        private AbilityDataSO GetValidatedData(AbilitySlot slot)
+        private AbilityDataSO GetValidatedData(string slotKey, AbilityDataSO data)
         {
-            AbilityDataSO data = _loadout.Get(slot);
-            if (data == null)
+            if (string.IsNullOrWhiteSpace(slotKey))
             {
-                Debug.LogWarning($"AbilityRuntimeBootstrap: {slot} slot has no ability data.");
+                Debug.LogWarning("AbilityRuntimeBootstrap: encountered loadout entry with empty slot key.");
                 return null;
             }
 
-            if (data.AbilityId == AbilityId.None)
+            if (data == null)
             {
-                Debug.LogWarning($"AbilityRuntimeBootstrap: {slot} uses {data.name} with AbilityId.None.");
+                Debug.LogWarning($"AbilityRuntimeBootstrap: {slotKey} slot has no ability data.");
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(data.AbilityKey))
+            {
+                Debug.LogWarning($"AbilityRuntimeBootstrap: {slotKey} uses {data.name} with empty AbilityKey.");
                 return null;
             }
 
@@ -132,10 +179,9 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                     Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} projectile prefab must include ProjectileRuntime.");
                     return null;
                 }
-
-                if (projectileData.MaxPoolSize <= 0)
+                if (data.TargetGroups == AbilityTargetGroups.None)
                 {
-                    Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} has invalid pool size.");
+                    Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} has no target groups selected.");
                     return null;
                 }
             }
@@ -145,6 +191,12 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                 if (aoeData.Radius <= 0f || aoeData.MaxTargets <= 0)
                 {
                     Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} has invalid AOE radius/maxTargets.");
+                    return null;
+                }
+
+                if (data.TargetGroups == AbilityTargetGroups.None)
+                {
+                    Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} has no target groups selected.");
                     return null;
                 }
             }
@@ -161,14 +213,10 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             return data;
         }
 
-        private void PublishSlotIfAvailable(AbilitySlot slot, AbilityDataSO data)
+        private static string NormalizeKey(string key)
         {
-            if (data == null)
-            {
-                return;
-            }
-
-            _slotAssignedPublisher.Publish(new AbilityLoadoutSlotAssignedEvent(slot, data.AbilityId, data.Icon));
+            return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
         }
     }
 }
+

@@ -1,4 +1,6 @@
-﻿using VContainer;
+using CaseStudy.Shared.Locomotion.Interfaces;
+using CaseStudy.Shared.Locomotion.Services;
+using VContainer;
 using VContainer.Unity;
 
 namespace CaseStudy.Core.Installers
@@ -11,6 +13,8 @@ namespace CaseStudy.Core.Installers
     {
         protected override void Configure(IContainerBuilder builder)
         {
+            builder.Register<LocomotionLockService>(Lifetime.Singleton);
+            builder.Register<ILocomotionLockService>(resolver => resolver.Resolve<LocomotionLockService>(), Lifetime.Singleton);
         }
     }
 }
