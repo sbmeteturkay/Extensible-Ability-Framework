@@ -1,5 +1,4 @@
-﻿using System;
-using CaseStudy.Feature.AbilitySystem.Domain;
+using System;
 using CaseStudy.Feature.Animation.Data;
 using CaseStudy.Shared.AbilitySystem.Events;
 using MessagePipe;
@@ -181,9 +180,9 @@ namespace CaseStudy.Feature.Animation.Runtime
                 _pendingAbilityUsedTrigger = true;
             }
 
-            if (_hasAbilityIndex && evt.AbilityId != AbilityId.None)
+            if (_hasAbilityIndex && !string.IsNullOrWhiteSpace(evt.AbilityKey))
             {
-                _pendingAbilityIndex = (int)evt.AbilityId;
+                _pendingAbilityIndex = Animator.StringToHash(evt.AbilityKey);
                 _hasPendingAbilityIndex = true;
             }
         }
@@ -311,3 +310,4 @@ namespace CaseStudy.Feature.Animation.Runtime
         }
     }
 }
+

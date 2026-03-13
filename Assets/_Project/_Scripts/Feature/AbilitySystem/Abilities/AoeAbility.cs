@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Data;
+using CaseStudy.Shared.Vfx.Interfaces;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -9,8 +10,15 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
 {
     public sealed class AoeAbility : BaseAbility
     {
+        private readonly IPooledVfxService _pooledVfxService;
+
         private AoeAbilityDataSO _aoeData;
         private Collider[] _overlapBuffer;
+
+        public AoeAbility(IPooledVfxService pooledVfxService)
+        {
+            _pooledVfxService = pooledVfxService;
+        }
 
         public override void Initialize(Domain.AbilityContext context, AbilityDataSO data)
         {
@@ -36,12 +44,13 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
 
             Vector3 center = Context.OwnerTransform.position;
+            LayerMask targetLayers = Context.ResolveTargetLayers(_aoeData);
 
             int hitCount = Physics.OverlapSphereNonAlloc(
                 center,
                 _aoeData.Radius,
                 _overlapBuffer,
-                _aoeData.AffectedLayers,
+                targetLayers,
                 QueryTriggerInteraction.Collide);
 
             for (int i = 0; i < hitCount; i++)
@@ -61,11 +70,36 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
 
             if (_aoeData.AoeVfxPrefab != null)
             {
-                //todo: pool
-                UnityEngine.Object.Instantiate(_aoeData.AoeVfxPrefab, center, Quaternion.identity);
+                if (_pooledVfxService != null)
+                {
+                    _pooledVfxService.Spawn(
+                        _aoeData.AoeVfxPrefab,
+                        center,
+                        Quaternion.identity,
+                        _aoeData.AoeVfxDelaySeconds,
+                        _aoeData.AoeVfxAutoReturnSeconds);
+                }
+                else
+                {
+                    SpawnAoeVfxAsync(_aoeData.AoeVfxPrefab, center, _aoeData.AoeVfxDelaySeconds).Forget();
+                }
             }
 
             return UniTask.CompletedTask;
+        }
+
+        private static async UniTaskVoid SpawnAoeVfxAsync(GameObject vfxPrefab, Vector3 center, float delaySeconds)
+        {
+            if (delaySeconds > 0f)
+            {
+                int delayMilliseconds = Mathf.CeilToInt(delaySeconds * 1000f);
+                if (delayMilliseconds > 0)
+                {
+                    await UniTask.Delay(delayMilliseconds, DelayType.DeltaTime, PlayerLoopTiming.Update, CancellationToken.None);
+                }
+            }
+
+            UnityEngine.Object.Instantiate(vfxPrefab, center, Quaternion.identity);
         }
     }
 }

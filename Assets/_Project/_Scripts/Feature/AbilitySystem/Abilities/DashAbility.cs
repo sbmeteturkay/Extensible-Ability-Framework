@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Data;
 using Cysharp.Threading.Tasks;
@@ -34,16 +34,9 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
 
             _isDashing = true;
-            bool pushedMovementLock = false;
 
             try
             {
-                if (_dashData.DisableRegularMovement && Context.LocomotionLockService != null)
-                {
-                    Context.LocomotionLockService.PushLock();
-                    pushedMovementLock = true;
-                }
-
                 Vector3 direction = Context.OwnerTransform.forward;
                 direction.y = 0f;
 
@@ -78,11 +71,6 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
             finally
             {
-                if (pushedMovementLock && Context.LocomotionLockService != null)
-                {
-                    Context.LocomotionLockService.PopLock();
-                }
-
                 _isDashing = false;
             }
         }

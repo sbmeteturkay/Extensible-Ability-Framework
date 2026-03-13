@@ -10,6 +10,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         [SerializeField, Min(0f)] private float _effectDurationSeconds = 1f;
         [SerializeField, Min(1)] private int _maxTargets = 32;
         [SerializeField] private GameObject _aoeVfxPrefab;
+        [SerializeField, Min(0f)] private float _aoeVfxDelaySeconds;
+        [SerializeField, Min(0f)] private float _aoeVfxAutoReturnSeconds = 2f;
         [SerializeField] private Color _debugColor = Color.cyan;
 
         public float Radius => _radius;
@@ -19,6 +21,10 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         public int MaxTargets => _maxTargets;
 
         public GameObject AoeVfxPrefab => _aoeVfxPrefab;
+
+        public float AoeVfxDelaySeconds => _aoeVfxDelaySeconds;
+
+        public float AoeVfxAutoReturnSeconds => _aoeVfxAutoReturnSeconds;
 
         public Color DebugColor => _debugColor;
     }

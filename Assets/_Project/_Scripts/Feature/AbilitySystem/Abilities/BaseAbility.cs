@@ -16,7 +16,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
 
         protected AbilityDataSO Data { get; private set; }
 
-        public AbilityId Id => Data != null ? Data.AbilityId : AbilityId.None;
+        public string AbilityKey => Data != null ? Data.AbilityKey : string.Empty;
 
         public virtual void Initialize(AbilityContext context, AbilityDataSO data)
         {
@@ -26,7 +26,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
 
         public virtual bool CanExecute()
         {
-            return Context != null && Data != null && Id != AbilityId.None;
+            return Context != null && Data != null && !string.IsNullOrWhiteSpace(AbilityKey);
         }
 
         public virtual void Tick(float deltaTime)

@@ -1,24 +1,25 @@
-using CaseStudy.Feature.AbilitySystem.Domain;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace CaseStudy.Feature.AbilitySystem.Data
 {
     public abstract class AbilityDataSO : ScriptableObject
     {
         [Header("Common")]
-        //todo: auto ability id set for each inherit
-        [SerializeField] private AbilityId _abilityId = AbilityId.None;
+        [SerializeField, HideInInspector, FormerlySerializedAs("_abilityId")] private string _abilityKey = string.Empty;
         [SerializeField] private string _displayName = "New Ability";
         [SerializeField] private Sprite _icon;
         [SerializeField, Min(0f)] private float _cooldownSeconds = 1f;
         [SerializeField, Min(0f)] private float _energyCost;
-        [SerializeField] private LayerMask _affectedLayers = ~0;
+        [SerializeField] private AbilityTargetGroups _targetGroups = AbilityTargetGroups.HitEnemies;
+        [SerializeField] private AbilityMovementPolicy _movementPolicy = AbilityMovementPolicy.None;
+        [SerializeField, Min(0f)] private float _minimumMovementLockDurationSeconds;
 
         [Header("Feedback")]
         [SerializeField] private GameObject _castVfxPrefab;
         [SerializeField] private AudioClip _castSfx;
 
-        public AbilityId AbilityId => _abilityId;
+        public string AbilityKey => _abilityKey;
 
         public string DisplayName => _displayName;
 
@@ -28,10 +29,46 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
         public float EnergyCost => _energyCost;
 
-        public LayerMask AffectedLayers => _affectedLayers;
+        public AbilityTargetGroups TargetGroups => _targetGroups;
+
+        public virtual AbilityMovementPolicy MovementPolicy => _movementPolicy;
+
+        public bool ShouldLockLocomotion => MovementPolicy == AbilityMovementPolicy.LockLocomotionDuringExecution;
+
+        public float MinimumMovementLockDurationSeconds => _minimumMovementLockDurationSeconds;
 
         public GameObject CastVfxPrefab => _castVfxPrefab;
 
         public AudioClip CastSfx => _castSfx;
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            AssignAbilityKeyFromGuid();
+        }
+
+        private void OnEnable()
+        {
+            AssignAbilityKeyFromGuid();
+        }
+
+        private void AssignAbilityKeyFromGuid()
+        {
+            string assetPath = UnityEditor.AssetDatabase.GetAssetPath(this);
+            if (string.IsNullOrWhiteSpace(assetPath))
+            {
+                return;
+            }
+
+            string guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
+            if (string.IsNullOrWhiteSpace(guid) || guid == _abilityKey)
+            {
+                return;
+            }
+
+            _abilityKey = guid;
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+#endif
     }
 }

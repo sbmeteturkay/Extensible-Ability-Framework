@@ -1,4 +1,4 @@
-﻿using CaseStudy.Feature.Locomotion.Contracts;
+using CaseStudy.Feature.Locomotion.Contracts;
 using CaseStudy.Feature.Locomotion.Domain;
 using CaseStudy.Shared.Locomotion.Interfaces;
 using UnityEngine;
@@ -8,45 +8,31 @@ namespace CaseStudy.Feature.Locomotion.Services
 {
     /// <summary>
     /// Applies movement/rotation in FixedUpdate with cached input and config.
-    /// Exposes a small lock API so abilities can pause regular movement when needed.
+    /// Reads lock state from shared locomotion lock service.
     /// </summary>
-    public sealed class LocomotionController : ILocomotionController, IFixedTickable, ILocomotionLockService
+    public sealed class LocomotionController : ILocomotionController, IFixedTickable
     {
         private const float MIN_DIRECTION_SQR_MAGNITUDE = 0.0001f;
 
+        private readonly ILocomotionLockService _locomotionLockService;
         private LocomotionContext _context;
-        private int _externalLockCount;
 
-        public bool IsLocked => _externalLockCount > 0;
+        public LocomotionController(ILocomotionLockService locomotionLockService)
+        {
+            _locomotionLockService = locomotionLockService;
+        }
 
         public void Configure(LocomotionContext context)
         {
             _context = context;
         }
 
-        public void PushLock()
-        {
-            _externalLockCount++;
-        }
-
-        public void PopLock()
-        {
-            if (_externalLockCount <= 0)
-            {
-                _externalLockCount = 0;
-                return;
-            }
-
-            _externalLockCount--;
-        }
-
         public void FixedTick()
         {
-            if (_context == null || IsLocked)
+            if (_context == null || (_locomotionLockService != null && _locomotionLockService.IsLocked))
             {
                 return;
             }
-
             Vector2 moveInput = _context.InputReader.MoveInput;
             float deadZone = _context.LocomotionData.InputDeadZone;
             float deadZoneSqr = deadZone * deadZone;

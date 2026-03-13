@@ -1,4 +1,7 @@
 using System;
+using System.Threading;
+using CaseStudy.Shared.Vfx.Interfaces;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Abilities
@@ -6,7 +9,6 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
     /// <summary>
     /// Runtime projectile behaviour: movement, collision handling, lifetime, and pool return.
     /// </summary>
-    /// 
     [RequireComponent(typeof(Rigidbody))]
     public sealed class ProjectileRuntime : MonoBehaviour
     {
@@ -16,6 +18,9 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         private float _elapsedSeconds;
         private LayerMask _hitLayers;
         private GameObject _impactVfxPrefab;
+        private float _impactVfxDelaySeconds;
+        private float _impactVfxAutoReturnSeconds;
+        private IPooledVfxService _pooledVfxService;
         private Action<ProjectileRuntime> _releaseAction;
 
         private void Awake()
@@ -66,6 +71,9 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             float lifeTimeSeconds,
             LayerMask hitLayers,
             GameObject impactVfxPrefab,
+            float impactVfxDelaySeconds,
+            float impactVfxAutoReturnSeconds,
+            IPooledVfxService pooledVfxService,
             Action<ProjectileRuntime> releaseAction)
         {
             transform.SetPositionAndRotation(position, Quaternion.LookRotation(direction));
@@ -73,6 +81,9 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             _lifeTimeSeconds = Mathf.Max(0.05f, lifeTimeSeconds);
             _hitLayers = hitLayers;
             _impactVfxPrefab = impactVfxPrefab;
+            _impactVfxDelaySeconds = Mathf.Max(0f, impactVfxDelaySeconds);
+            _impactVfxAutoReturnSeconds = Mathf.Max(0f, impactVfxAutoReturnSeconds);
+            _pooledVfxService = pooledVfxService;
             _releaseAction = releaseAction;
             _isActive = true;
             _elapsedSeconds = 0f;
@@ -102,7 +113,37 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
                 return;
             }
 
-            Instantiate(_impactVfxPrefab, transform.position, Quaternion.identity);
+            Vector3 impactPosition = transform.position;
+
+            if (_pooledVfxService != null)
+            {
+                _pooledVfxService.Spawn(
+                    _impactVfxPrefab,
+                    impactPosition,
+                    Quaternion.identity,
+                    _impactVfxDelaySeconds,
+                    _impactVfxAutoReturnSeconds);
+                return;
+            }
+
+            if (_impactVfxDelaySeconds <= 0f)
+            {
+                Instantiate(_impactVfxPrefab, impactPosition, Quaternion.identity);
+                return;
+            }
+
+            SpawnImpactVfxDelayedAsync(_impactVfxPrefab, impactPosition, _impactVfxDelaySeconds).Forget();
+        }
+
+        private static async UniTaskVoid SpawnImpactVfxDelayedAsync(GameObject impactVfxPrefab, Vector3 position, float delaySeconds)
+        {
+            int delayMilliseconds = Mathf.CeilToInt(delaySeconds * 1000f);
+            if (delayMilliseconds > 0)
+            {
+                await UniTask.Delay(delayMilliseconds, DelayType.DeltaTime, PlayerLoopTiming.Update, CancellationToken.None);
+            }
+
+            Instantiate(impactVfxPrefab, position, Quaternion.identity);
         }
 
         private static bool IsInLayerMask(int layer, LayerMask layerMask)

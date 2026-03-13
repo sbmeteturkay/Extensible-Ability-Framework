@@ -2,7 +2,6 @@ using CaseStudy.Feature.Locomotion.Contracts;
 using CaseStudy.Feature.Locomotion.Input;
 using CaseStudy.Feature.Locomotion.Runtime;
 using CaseStudy.Feature.Locomotion.Services;
-using CaseStudy.Shared.Locomotion.Interfaces;
 using VContainer;
 using VContainer.Unity;
 
@@ -21,7 +20,6 @@ namespace CaseStudy.Feature.Locomotion.Installers
 
             builder.Register<LocomotionController>(Lifetime.Singleton);
             builder.Register<ILocomotionController>(resolver => resolver.Resolve<LocomotionController>(), Lifetime.Singleton);
-            builder.Register<ILocomotionLockService>(resolver => resolver.Resolve<LocomotionController>(), Lifetime.Singleton);
             builder.Register<ILocomotionInputReader>(resolver => resolver.Resolve<LocomotionInputGateway>(), Lifetime.Singleton);
 
             builder.RegisterEntryPoint<LocomotionController>();

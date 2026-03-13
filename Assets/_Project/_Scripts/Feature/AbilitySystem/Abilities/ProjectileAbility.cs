@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Data;
+using CaseStudy.Shared.Vfx.Interfaces;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -8,8 +9,15 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
 {
     public sealed class ProjectileAbility : BaseAbility
     {
+        private readonly IPooledVfxService _pooledVfxService;
+
         private ProjectileAbilityDataSO _projectileData;
         private ProjectilePool _projectilePool;
+
+        public ProjectileAbility(IPooledVfxService pooledVfxService)
+        {
+            _pooledVfxService = pooledVfxService;
+        }
 
         public override void Initialize(Domain.AbilityContext context, AbilityDataSO data)
         {
@@ -27,7 +35,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
                 return;
             }
 
-            _projectilePool = new ProjectilePool(projectilePrefab, _projectileData.MaxPoolSize);
+            _projectilePool = new ProjectilePool(projectilePrefab);
         }
 
         public override bool CanExecute()
@@ -54,18 +62,18 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             Vector3 spawnPosition = Context.OwnerTransform.position + direction.normalized * _projectileData.SpawnForwardOffset;
             ProjectileRuntime projectile = _projectilePool.Get();
 
-            if (projectile == null)
-            {
-                throw new InvalidOperationException("Projectile pool exhausted.");
-            }
+            LayerMask hitLayers = Context.ResolveTargetLayers(_projectileData);
 
             projectile.Launch(
                 spawnPosition,
                 direction,
                 _projectileData.ProjectileSpeed,
                 _projectileData.MaxLifeTimeSeconds,
-                _projectileData.AffectedLayers,
+                hitLayers,
                 _projectileData.ImpactVfxPrefab,
+                _projectileData.ImpactVfxDelaySeconds,
+                _projectileData.ImpactVfxAutoReturnSeconds,
+                _pooledVfxService,
                 _projectilePool.Release);
 
             return UniTask.CompletedTask;

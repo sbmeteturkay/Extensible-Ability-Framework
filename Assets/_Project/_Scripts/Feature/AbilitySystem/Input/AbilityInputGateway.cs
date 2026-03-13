@@ -1,4 +1,6 @@
-using CaseStudy.Feature.AbilitySystem.Domain;
+using System;
+using System.Collections.Generic;
+using CaseStudy.Feature.AbilitySystem.Data;
 using CaseStudy.Shared.AbilitySystem.Events;
 using MessagePipe;
 using UnityEngine;
@@ -9,14 +11,44 @@ namespace CaseStudy.Feature.AbilitySystem.Input
 {
     /// <summary>
     /// Publishes slot trigger requests from Input System actions.
+    /// Supports any number of slot bindings.
     /// </summary>
     public sealed class AbilityInputGateway : MonoBehaviour
     {
-        [Header("Input Actions")]
-        [SerializeField] private InputActionReference _primaryAction;
-        [SerializeField] private InputActionReference _secondaryAction;
-        [SerializeField] private InputActionReference _utilityAction;
+        [Serializable]
+        private sealed class InputSlotBinding
+        {
+            [SerializeField] private SlotDefinitionSO _slot;
+            [SerializeField] private InputActionReference _action;
 
+            public SlotDefinitionSO Slot => _slot;
+
+            public string SlotKey => _slot != null ? NormalizeKey(_slot.SlotKey) : string.Empty;
+
+            public InputActionReference Action => _action;
+
+            private static string NormalizeKey(string key)
+            {
+                return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
+            }
+        }
+
+        private readonly struct RegisteredBinding
+        {
+            public readonly InputAction Action;
+            public readonly Action<InputAction.CallbackContext> Callback;
+
+            public RegisteredBinding(InputAction action, Action<InputAction.CallbackContext> callback)
+            {
+                Action = action;
+                Callback = callback;
+            }
+        }
+
+        [Header("Input Bindings")]
+        [SerializeField] private List<InputSlotBinding> _bindings = new(3);
+
+        private readonly List<RegisteredBinding> _registeredBindings = new(4);
         private IPublisher<AbilityTriggerRequestedEvent> _triggerPublisher;
 
         [Inject]
@@ -27,65 +59,75 @@ namespace CaseStudy.Feature.AbilitySystem.Input
 
         private void OnEnable()
         {
-            BindAction(_primaryAction, OnPrimaryPerformed);
-            BindAction(_secondaryAction, OnSecondaryPerformed);
-            BindAction(_utilityAction, OnUtilityPerformed);
+            BindAll();
         }
 
         private void OnDisable()
         {
-            UnbindAction(_primaryAction, OnPrimaryPerformed);
-            UnbindAction(_secondaryAction, OnSecondaryPerformed);
-            UnbindAction(_utilityAction, OnUtilityPerformed);
+            UnbindAll();
         }
 
-        private void OnPrimaryPerformed(InputAction.CallbackContext context)
+        private void BindAll()
         {
-            Publish(AbilitySlot.Primary);
-        }
+            UnbindAll();
 
-        private void OnSecondaryPerformed(InputAction.CallbackContext context)
-        {
-            Publish(AbilitySlot.Secondary);
-        }
-
-        private void OnUtilityPerformed(InputAction.CallbackContext context)
-        {
-            Publish(AbilitySlot.Utility);
-        }
-
-        private void Publish(AbilitySlot slot)
-        {
-            if (_triggerPublisher == null)
+            if (_bindings == null)
             {
                 return;
             }
 
-            _triggerPublisher.Publish(new AbilityTriggerRequestedEvent(slot));
+            int count = _bindings.Count;
+            for (int i = 0; i < count; i++)
+            {
+                InputSlotBinding binding = _bindings[i];
+                if (binding == null || binding.Slot == null || string.IsNullOrWhiteSpace(binding.SlotKey) || binding.Action == null || binding.Action.action == null)
+                {
+                    continue;
+                }
+
+                string slotKey = binding.SlotKey;
+                InputAction action = binding.Action.action;
+                Action<InputAction.CallbackContext> callback = _ => Publish(slotKey);
+
+                action.performed += callback;
+                if (!action.enabled)
+                {
+                    action.Enable();
+                }
+
+                _registeredBindings.Add(new RegisteredBinding(action, callback));
+            }
         }
 
-        private static void BindAction(InputActionReference actionReference, System.Action<InputAction.CallbackContext> callback)
+        private void UnbindAll()
         {
-            if (actionReference == null || actionReference.action == null)
+            int count = _registeredBindings.Count;
+            for (int i = 0; i < count; i++)
+            {
+                RegisteredBinding registered = _registeredBindings[i];
+                if (registered.Action != null)
+                {
+                    registered.Action.performed -= registered.Callback;
+                }
+            }
+
+            _registeredBindings.Clear();
+        }
+
+        private void Publish(string slotKey)
+        {
+            slotKey = NormalizeKey(slotKey);
+            if (_triggerPublisher == null || string.IsNullOrWhiteSpace(slotKey))
             {
                 return;
             }
 
-            actionReference.action.performed += callback;
-            if (!actionReference.action.enabled)
-            {
-                actionReference.action.Enable();
-            }
+            _triggerPublisher.Publish(new AbilityTriggerRequestedEvent(slotKey));
         }
 
-        private static void UnbindAction(InputActionReference actionReference, System.Action<InputAction.CallbackContext> callback)
+        private static string NormalizeKey(string key)
         {
-            if (actionReference == null || actionReference.action == null)
-            {
-                return;
-            }
-
-            actionReference.action.performed -= callback;
+            return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
         }
     }
 }
