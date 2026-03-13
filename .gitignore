@@ -74,3 +74,7 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 Assets/External Assets
+.idea
+Temp_CaseDoc
+Temp_CaseDoc.zip
+AGENTS.md
