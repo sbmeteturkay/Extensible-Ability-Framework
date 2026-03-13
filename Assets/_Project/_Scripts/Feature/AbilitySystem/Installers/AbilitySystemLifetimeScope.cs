@@ -1,10 +1,8 @@
-using CaseStudy.Feature.AbilitySystem.Contracts;
+﻿using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Input;
 using CaseStudy.Feature.AbilitySystem.Runtime;
 using CaseStudy.Feature.AbilitySystem.Services;
 using CaseStudy.Feature.AbilitySystem.UI;
-using CaseStudy.Shared.AbilitySystem.Events;
-using MessagePipe;
 using VContainer;
 using VContainer.Unity;
 
@@ -12,22 +10,12 @@ namespace CaseStudy.Feature.AbilitySystem.Installers
 {
     /// <summary>
     /// Feature-local DI scope for the ability system.
-    /// Keeps ability services independent from core template scope.
+    /// Requires a parent gameplay scope that registers shared MessagePipe brokers.
     /// </summary>
     public sealed class AbilitySystemLifetimeScope : LifetimeScope
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            MessagePipeOptions messagePipeOptions = builder.RegisterMessagePipe();
-            builder.RegisterMessageBroker<AbilityTriggerRequestedEvent>(messagePipeOptions);
-            builder.RegisterMessageBroker<AbilityTriggeredEvent>(messagePipeOptions);
-            builder.RegisterMessageBroker<AbilityExecutionFailedEvent>(messagePipeOptions);
-            builder.RegisterMessageBroker<AbilityCooldownStartedEvent>(messagePipeOptions);
-            builder.RegisterMessageBroker<AbilityCooldownUpdatedEvent>(messagePipeOptions);
-            builder.RegisterMessageBroker<AbilityCooldownCompletedEvent>(messagePipeOptions);
-            builder.RegisterMessageBroker<AbilityEnergyChangedEvent>(messagePipeOptions);
-            builder.RegisterMessageBroker<AbilityLoadoutSlotAssignedEvent>(messagePipeOptions);
-
             builder.RegisterComponentInHierarchy<AbilityRuntimeBootstrap>();
             builder.RegisterComponentInHierarchy<AbilityInputGateway>();
             builder.RegisterComponentInHierarchy<AbilityHudPresenter>();
@@ -39,6 +27,7 @@ namespace CaseStudy.Feature.AbilitySystem.Installers
             builder.Register<EnergyService>(Lifetime.Singleton);
             builder.Register<IEnergyService>(resolver => resolver.Resolve<EnergyService>(), Lifetime.Singleton);
             builder.RegisterEntryPoint<EnergyService>();
+
             builder.Register<IAbilityFactory, AbilityFactory>(Lifetime.Singleton);
             builder.Register<AbilityController>(Lifetime.Singleton);
             builder.Register<IAbilityController>(resolver => resolver.Resolve<AbilityController>(), Lifetime.Singleton);
