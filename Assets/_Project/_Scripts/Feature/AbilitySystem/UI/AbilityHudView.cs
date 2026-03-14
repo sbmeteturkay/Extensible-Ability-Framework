@@ -87,7 +87,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
         private AbilityHudSlotWidget FindWidget(string slotKey)
         {
-            slotKey = NormalizeKey(slotKey);
+            slotKey = AbilitySlotKeyUtility.Normalize(slotKey);
             if (_slotWidgets == null || string.IsNullOrWhiteSpace(slotKey))
             {
                 return null;
@@ -102,7 +102,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
                     continue;
                 }
 
-                string widgetSlotKey = NormalizeKey(widget.SlotKey);
+                string widgetSlotKey = AbilitySlotKeyUtility.Normalize(widget.SlotKey);
                 if (widgetSlotKey == slotKey)
                 {
                     return widget;
@@ -111,10 +111,6 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
             return null;
         }
-
-        private static string NormalizeKey(string key)
-        {
-            return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
-        }
     }
 }
+

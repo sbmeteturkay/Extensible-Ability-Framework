@@ -23,14 +23,9 @@ namespace CaseStudy.Feature.AbilitySystem.Input
 
             public SlotDefinitionSO Slot => _slot;
 
-            public string SlotKey => _slot != null ? NormalizeKey(_slot.SlotKey) : string.Empty;
+            public string SlotKey => _slot != null ? AbilitySlotKeyUtility.Normalize(_slot.SlotKey) : string.Empty;
 
             public InputActionReference Action => _action;
-
-            private static string NormalizeKey(string key)
-            {
-                return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
-            }
         }
 
         private readonly struct RegisteredBinding
@@ -116,7 +111,7 @@ namespace CaseStudy.Feature.AbilitySystem.Input
 
         private void Publish(string slotKey)
         {
-            slotKey = NormalizeKey(slotKey);
+            slotKey = AbilitySlotKeyUtility.Normalize(slotKey);
             if (_triggerPublisher == null || string.IsNullOrWhiteSpace(slotKey))
             {
                 return;
@@ -124,10 +119,6 @@ namespace CaseStudy.Feature.AbilitySystem.Input
 
             _triggerPublisher.Publish(new AbilityTriggerRequestedEvent(slotKey));
         }
-
-        private static string NormalizeKey(string key)
-        {
-            return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
-        }
     }
 }
+

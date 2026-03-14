@@ -19,14 +19,9 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
             public SlotDefinitionSO Slot => _slot;
 
-            public string SlotKey => _slot != null ? NormalizeKey(_slot.SlotKey) : string.Empty;
+            public string SlotKey => _slot != null ? AbilitySlotKeyUtility.Normalize(_slot.SlotKey) : string.Empty;
 
             public AbilityDataSO AbilityData => _abilityData;
-
-            private static string NormalizeKey(string key)
-            {
-                return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
-            }
         }
 
         [SerializeField] private List<AbilityLoadoutEntry> _slots = new(3);
@@ -62,3 +57,4 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
+

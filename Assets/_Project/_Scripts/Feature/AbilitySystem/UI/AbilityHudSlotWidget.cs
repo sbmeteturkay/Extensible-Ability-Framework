@@ -18,7 +18,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
         private System.Action<string> _triggerCallback;
 
-        public string SlotKey => _slotDefinition != null ? NormalizeKey(_slotDefinition.SlotKey) : string.Empty;
+        public string SlotKey => _slotDefinition != null ? AbilitySlotKeyUtility.Normalize(_slotDefinition.SlotKey) : string.Empty;
 
         private void Awake()
         {
@@ -81,10 +81,6 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
             _triggerCallback?.Invoke(slotKey);
         }
-
-        private static string NormalizeKey(string key)
-        {
-            return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
-        }
     }
 }
+

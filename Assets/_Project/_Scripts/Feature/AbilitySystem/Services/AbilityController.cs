@@ -91,7 +91,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
             foreach (KeyValuePair<string, AbilityDataSO> pair in loadout)
             {
-                string slotKey = NormalizeKey(pair.Key);
+                string slotKey = AbilitySlotKeyUtility.Normalize(pair.Key);
                 AbilityDataSO data = pair.Value;
 
                 if (string.IsNullOrWhiteSpace(slotKey) || data == null)
@@ -119,7 +119,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
         public bool TryTrigger(string slotKey)
         {
-            slotKey = NormalizeKey(slotKey);
+            slotKey = AbilitySlotKeyUtility.Normalize(slotKey);
             if (string.IsNullOrWhiteSpace(slotKey))
             {
                 return false;
@@ -460,10 +460,6 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 overrides[j + 1] = current;
             }
         }
-
-        private static string NormalizeKey(string key)
-        {
-            return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
-        }
     }
 }
+

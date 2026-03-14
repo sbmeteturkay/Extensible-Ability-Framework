@@ -108,8 +108,8 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
         private void OnSlotAssigned(AbilityLoadoutSlotAssignedEvent evt)
         {
-            string abilityKey = NormalizeKey(evt.AbilityKey);
-            string slotKey = NormalizeKey(evt.SlotKey);
+            string abilityKey = AbilitySlotKeyUtility.Normalize(evt.AbilityKey);
+            string slotKey = AbilitySlotKeyUtility.Normalize(evt.SlotKey);
             if (string.IsNullOrWhiteSpace(abilityKey) || string.IsNullOrWhiteSpace(slotKey))
             {
                 return;
@@ -156,7 +156,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
         private void OnSlotClicked(string slotKey)
         {
-            slotKey = NormalizeKey(slotKey);
+            slotKey = AbilitySlotKeyUtility.Normalize(slotKey);
             if (string.IsNullOrWhiteSpace(slotKey))
             {
                 return;
@@ -164,10 +164,6 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
             _triggerPublisher.Publish(new AbilityTriggerRequestedEvent(slotKey));
         }
-
-        private static string NormalizeKey(string key)
-        {
-            return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
-        }
     }
 }
+

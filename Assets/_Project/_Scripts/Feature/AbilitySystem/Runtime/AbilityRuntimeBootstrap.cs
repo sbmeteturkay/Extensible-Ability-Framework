@@ -111,7 +111,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                     continue;
                 }
 
-                string slotKey = NormalizeKey(entry.SlotKey);
+                string slotKey = AbilitySlotKeyUtility.Normalize(entry.SlotKey);
                 AbilityDataSO validatedData = GetValidatedData(slotKey, entry.AbilityData);
                 if (validatedData == null)
                 {
@@ -165,10 +165,6 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
 
             return data;
         }
-
-        private static string NormalizeKey(string key)
-        {
-            return string.IsNullOrWhiteSpace(key) ? string.Empty : key.Trim();
-        }
     }
 }
+
