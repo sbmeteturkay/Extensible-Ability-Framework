@@ -1,274 +1,154 @@
-# CLAUDE.md — Unity Mobile Game Project Rules
+# Extensible Ability Framework - Unity Case Study
 
-Bu dosya AI asistanlar (Claude vb.) ve yeni geliştiriciler için projenin
-temel kurallarını, mimarisini ve beklentilerini tanımlar.
-Her yeni chat başında bu dosya bağlam olarak verilmelidir.
+Bu repo, Unit Game Developer case icin gelistirilen modul bazli bir gameplay altyapisini icerir.
+Odak nokta Ability System olsa da, Locomotion ve Animation feature'lari da ayni mimari prensiplerle ayrik sekilde kurgulanmistir.
 
----
+## 1. Case Kapsami Ozeti
 
-## 🎯 Proje Bağlamı
+- DI tabanli feature mimarisi (VContainer, MessagePipe)
+- Data-driven ability authoring (tek bir `AbilityDataSO` catisi + module/executor/override)
+- Paylasilan enerji/cooldown sistemi ve HUD sunumu
+- Dash, Projectile ve AOE executor'lari
+- Hit visual sistemi (flash, scale, bounce, hit vfx)
+- VFX pooling (projectile impact, aoe cast, hit vfx)
+- Player locomotion ve animator entegrasyonu
 
-- **Platform:** iOS & Android (Unity Mobile)
-- **Boyut:** Çoğunlukla 3D, bazı 2D sahneler
-- **Mimari:** Feature-based (özelliğe göre modüler yapı)
-- **Dil:** C# (.NET / Unity)
-- **Unity Versiyonu:** *(buraya yaz)*
-- **Hedef:** Temiz, sürdürülebilir, takım ve AI dostu kod tabanı
+## 2. Tech Stack
 
----
+- Unity: `6000.3.8f1`
+- DI: `VContainer 1.17.0`
+- Event Bus: `MessagePipe 1.8.1`
+- Async: `UniTask 2.5.10`
+- Tween: `PrimeTween 1.3.3`
+- Input: `Input System 1.18.0`
 
-## 📦 Teknoloji Stack
+## 3. Mimari Kararlar ve Gerekceleri
 
-| Paket | Amaç |
-|-------|------|
-| **VContainer** | Dependency Injection |
-| **MessagePipe** | Feature arası event sistemi |
-| **UniTask** | Async/await, Coroutine yerine |
-| **PrimeTween** | Animasyon ve tweening |
+### 3.1 Scope Topolojisi
 
----
+- `GamePlayLifetimeScope`: ortak event broker kayitlari
+- `PlayerLifetimeScope`: oyuncu seviyesindeki ortak servisler (`ILocomotionLockService`)
+- `AbilityPlayerLifetimeScope`: ability domain servisleri ve runtime bootstrap
+- `AbilitySceneLifetimeScope`: scene tarafi input + HUD presenter
+- `LocomotionLifetimeScope`: locomotion input/controller/bootstrap
+- `PlayerAnimationLifetimeScope`: animation driver
 
-## 📁 Klasör Yapısı
+Gerekce:
+- Player prefab'i sahneden bagimsiz kalirken, scene UI/input ile event tabanli iletisim korunur.
+- Feature'lar birbirini dogrudan referanslamaz; ortak kanal MessagePipe uzerinden kurulur.
 
-### Temel Kural
-> `Features/` = oyun mantığı (kod, prefab, data, animasyon).
-> Ham sanat varlıkları (model, texture, material) `Art/` altında yaşar.
-> İkisini birbirine prefab bağlar.
+### 3.2 Data-Driven Ability Modeli
 
-```
-Assets/
-├── _Project/
-│   ├── Features/                        # Oyun mekaniği — her özellik kendi klasöründe
-│   │   └── Player/                      # Örnek feature
-│   │       ├── Scripts/
-│   │       ├── Prefabs/
-│   │       ├── Data/                    # ScriptableObject asset'leri
-│   │       ├── Animations/
-│   │       └── Tests/
-│   │
-│   ├── Core/                            # Oyunun iskeleti — oyuna özel hiçbir şey içermez
-│   │   ├── Installers/
-│   │   │   ├── GameLifetimeScope.cs     # VContainer root scope
-│   │   │   └── AppLifetimeScope.cs      # Oyuna özel bind'lar (template'den çekilmez)
-│   │   ├── EventSystem/
-│   │   │   └── Events/
-│   │   │       ├── PlayerEvents.cs      # MessagePipe event tipleri (struct)
-│   │   │       ├── GameStateEvents.cs
-│   │   │       └── ...
-│   │   ├── GameManager/
-│   │   ├── AudioService/
-│   │   ├── SaveSystem/
-│   │   └── SceneManagement/
-│   │
-│   ├── Shared/                          # 2+ feature'ın kullandığı ortak kod
-│   │   ├── Scripts/
-│   │   │   ├── Extensions/
-│   │   │   ├── Utilities/
-│   │   │   │   ├── ObjectPool.cs
-│   │   │   │   └── Timer.cs
-│   │   │   └── Interfaces/
-│   │   │       ├── IDamageable.cs
-│   │   │       ├── ICollectible.cs
-│   │   │       └── IPoolable.cs
-│   │   └── Data/
-│   │
-│   └── Settings/                        # Unity config asset'leri (kod değil)
-│       ├── InputSystem.inputactions
-│       ├── UniversalRenderPipeline.asset
-│       └── AudioMixer.mixer
-│
-├── Art/
-├── Audio/
-├── Scenes/
-│   ├── Boot.unity
-│   ├── MainMenu.unity
-│   ├── Levels/
-│   └── _Dev/
-└── Plugins/
-```
+- Tek roof data: `AbilityDataSO`
+- Mekanik parametreleri: `AbilityModuleSO` turevleri
+- Calistirma mantigi: `AbilityExecutorSO` turevleri
+- Davranis degisimi / kural enjeksiyonu: `AbilityOverrideSO` turevleri
 
----
+Gerekce:
+- "Yeni icerik varyanti = yeni asset" hedefi saglanir.
+- "Yeni mekanik = yeni executor/module class" sinirli ve kontrollu kalir.
+- Yuzlerce skill senaryosunda her skill icin yeni `AbilityDataSO` sinifi yazma ihtiyaci kalkar.
 
-## ✍️ Naming Conventions
+### 3.3 Slot ve Kimlik Stratejisi
 
-### C# Dosyaları & Sınıflar
-| Tür | Format | Örnek |
-|-----|--------|-------|
-| Class | PascalCase | `PlayerController` |
-| Interface | IPascalCase | `IDamageable` |
-| ScriptableObject | PascalCase + SO | `EnemyDataSO` |
-| Enum | PascalCase | `GameState` |
-| Enum value | PascalCase | `GameState.Playing` |
-| Private field | _camelCase | `_currentHealth` |
-| Public property | PascalCase | `CurrentHealth` |
-| Method | PascalCase | `TakeDamage()` |
-| Const | UPPER_SNAKE | `MAX_HEALTH` |
-| MessagePipe event | PascalCase + Event | `PlayerDiedEvent` |
+- Ability kimligi: `AbilityDataSO` asset GUID (`AbilityKey`)
+- Slot kimligi: `SlotDefinitionSO` asset GUID (`SlotKey`)
+- Runtime mapping: `slotKey -> ability`
 
-### Asset Dosyaları
-| Tür | Format | Örnek |
-|-----|--------|-------|
-| Prefab | PascalCase | `EnemySpider.prefab` |
-| Scene | PascalCase | `Level_01.unity` |
-| Material | M_PascalCase | `M_RockWall.mat` |
-| Texture | T_PascalCase + suffix | `T_RockWall_D.png` |
-| Animation | A_PascalCase | `A_Player_Run.anim` |
-| Audio Clip | SFX_ / BGM_ | `SFX_Explosion.wav` |
-| ScriptableObject | SO_PascalCase | `SO_EnemyData_Spider.asset` |
+Gerekce:
+- Enum veya manuel id bakimi yok.
+- Refactor/rename sonrasinda id stabilitesi korunur.
 
----
+### 3.4 VFX ve Performans Karari
 
-## 🏗️ Mimari Kurallar
+- Ability tarafi VFX spawn'lari `IPooledVfxService` uzerinden yapilir.
+- Pool servisi yoksa instantiate fallback yerine skip + warning uygulanir.
 
-### Feature Modülleri
-- Her feature **kendi klasöründe yaşar:** Scripts, Prefabs, Data, Animations, Tests
-- `Features/` = oyun mantığı — ham art asset'leri buraya **girmez** → `Art/`
-- Bir feature, **başka bir feature'ın sınıflarına doğrudan referans vermez**
-- Featureler arası iletişim: **yalnızca MessagePipe** üzerinden
-- 2+ feature aynı şeyi kullanıyorsa → `Shared/`'a taşı
-- **Featureler tek tek geliştirilir** — bir feature tamamlanmadan diğerine geçilmez
+Gerekce:
+- Case'teki object pooling beklentisi net karsilanir.
+- Mobilde GC spike riski azaltilir.
 
-### Genel Yazılım Prensipleri
-- **SRP** — Her sınıfın tek bir sorumluluğu olmalı
-- **OCP** — Mevcut kodu değiştirmek yerine extend et
-- **DIP** — Somut sınıflara değil, interface'lere bağımlı ol
-- **YAGNI** — İhtiyaç olmayan şeyi yazma
-- **DRY** — Tekrar eden kodu Shared'a taşı
+### 3.5 Hit Zamani Semantigi
 
-### Dependency Injection — VContainer
-- **DI framework: VContainer** — başka DI çözümü kullanılmaz
-- `Core/Installers/GameLifetimeScope.cs` → root scope, tüm core servisler burada
-- `Core/Installers/AppLifetimeScope.cs` → oyuna özel bind'lar
-- Plain C# class'lar constructor injection ile inject edilir
-- MonoBehaviour'lar `[Inject]` metodu ile inject edilir
-- **Singleton pattern kullanılmaz** → VContainer Singleton lifetime kullan
+- AOE icin `HitDelaySeconds` tanimlidir.
+- Hit ile birlikte hit visual tetiklenir.
+- Hit visual'in kendi offset'i icin `HitVisualDelaySeconds` vardir.
 
-### Event Sistemi — MessagePipe
-- Feature arası iletişim **yalnızca MessagePipe** üzerinden
-- **ScriptableObject event channel kullanılmaz**
-- **Static C# event kullanılmaz**
-- Event tipleri `readonly struct` olarak tanımlanır → GC dostu
-- Event tipleri `Core/EventSystem/Events/` altında yaşar
-- Subscribe/unsubscribe `DisposableBag` ile yönetilir
+Gerekce:
+- "Gercek vurus zamani" ile "visual feedback" hizli ama kontrol edilebilir sekilde ayristirilir.
 
-```csharp
-// Event tipi — Core/EventSystem/Events/PlayerEvents.cs
-public readonly struct PlayerDiedEvent
-{
-    public readonly int Score;
-    public PlayerDiedEvent(int score) => Score = score;
-}
+## 4. Kullanilan Pattern'ler
 
-// Publish eden taraf
-_publisher.Publish(new PlayerDiedEvent(score));
+- Strategy Pattern:
+  - `AbilityExecutorSO` secimi ile yetenek calisma davranisi degisir.
+- Template/Hook Pattern:
+  - `AbilityOverrideSO` oncesi/sonrasi hook noktalarina baglanir.
+- Factory Pattern:
+  - `AbilityFactory`, runtime `IAbility` uretimini tek noktada toplar.
+- Observer (Pub/Sub):
+  - MessagePipe event akisiyla feature'lar arasi gevek baglanti kurulur.
+- Object Pool:
+  - `ProjectilePool` ve `PooledVfxService` tekrarli nesnelerde kullanilir.
 
-// Subscribe eden taraf
-_subscriber.Subscribe(e => HandlePlayerDied(e)).AddTo(_bag);
-```
+## 5. Gereksinim Karsilama Matrisi
 
-### Script Kuralları
-- Her MonoBehaviour'un **tek bir sorumluluğu** olmalı
-- `Update()` içinde GetComponent çağırma → Awake'te cache'le
-- Magic number kullanma → `const` veya `SerializeField`
-- **Coroutine kullanma** → UniTask kullan
-- `Find()`, `FindObjectOfType()` **yasak** → VContainer inject et
-- **Singleton pattern kullanılmaz**
-- Animator string'leri `static readonly int` hash olarak cache'le
+| Case beklentisi | Cozum | Durum |
+|---|---|---|
+| 3 farkli ability davranisi | Dash / Projectile / AOE executor'lari | Tamam |
+| Data ve logic ayrimi | SO data + C# runtime/executor | Tamam |
+| Pooling kullanimi | Projectile ve ability VFX pooling | Tamam |
+| Error tolerance | Bootstrap ve validate kontrolleri + warning | Tamam |
+| HUD geri bildirimi | Slot icon, cooldown, enerji slider | Tamam |
+| Yeni ability eklenebilirligi | Module/executor/override modeli | Tamam |
+| Featurelar arasi bagimsizlik | MessagePipe eventleri + scope ayrimi | Tamam |
 
-### Mobile Performans
-- GC alloc minimize edilmeli — özellikle Update() ve hot path'lerde
-- Tekrar eden nesneler için **ObjectPool** kullan
-- `string` birleştirme döngülerde **StringBuilder**
-- Texture: Android → **ETC2**, iOS → **ASTC**
-- Draw call hedefi: **<100 per frame**
+## 6. Kurulum ve Calistirma
 
----
+1. Unity Hub ile proje acilir (`6000.3.8f1`).
+2. `Assets/_Project/Scenes/Gameplay.unity` sahnesi acilir.
+3. Scene hiyerarsisinde scope parent baglantilari kontrol edilir.
+4. Player prefab altinda ilgili feature scope'lari aktif oldugundan emin olunur.
+5. Play mode'da input, HUD, ability ve hit testleri dogrulanir.
 
-## 🤖 AI İçin Talimatlar
+## 7. Test Senaryolari (Manual)
 
-### Genel Yaklaşım
-- Naming conventions'a **her zaman** uy
-- Her yeni dosya için **tam klasör yolunu** belirt: `// Features/Player/Scripts/PlayerDash.cs`
-- Mevcut kodla **tutarlı kal**, kendi stilini katma
-- Genel yazılım prensiplerini (SRP, DIP, DRY vb.) her zaman göz önünde bulundur
+- Slot trigger:
+  - Klavye/onscreen buton ile dogru slot tetikleniyor mu?
+- Cooldown:
+  - Ability kullanimindan sonra cooldown fill/text dogru guncelleniyor mu?
+- Energy:
+  - Tek slider tum skill'ler icin ortak enerji state'ini gosteriyor mu?
+- AOE hit:
+  - `HitDelaySeconds` sonrasi hedef etkileniyor mu?
+  - Hit visual (flash/scale/bounce) beklenen anda calisiyor mu?
+- Projectile:
+  - Spawn offset, yon ve collision mask beklendigi gibi mi?
+  - Impact ve hit vfx pool altinda reuse ediliyor mu?
+- Locomotion lock:
+  - Lock policy acik ability calisirken locomotion bloke oluyor mu?
+- Animation:
+  - Move parametreleri stabil mi?
+  - `AbilityTriggeredEvent` ile ability trigger/indeks animatora gidiyor mu?
 
-### YAPMA — Teknik Kurallar
-- `FindObjectOfType`, `GameObject.Find` kullanma → VContainer
-- Magic string veya magic number bırakma
-- Monolithic script yazma → SRP
-- `Resources.Load` kullanma → Addressables
-- **Singleton pattern kullanma** → VContainer
-- **ScriptableObject event channel kullanma** → MessagePipe
-- **Static C# event kullanma** → MessagePipe
-- **Coroutine kullanma** → UniTask
-- Service Locator kullanma → VContainer
-- Feature'lar arası doğrudan referans verme → MessagePipe
+## 8. Trade-off ve Bilincli Tercihler
 
-### YAPMA — Süreç Kuralları
-- **Sormadan kod veya dosya yaratma** — ne yaratacağını önce listele, onay al, sonra yaz
-- **Sormadan refactor yapma** — önce kapsamı açıkla, onay al
-- **Tek hamlede çok fazla dosya değiştirme** — adım adım ilerle
-- **Birden fazla feature'ı aynı anda geliştirme** — odak tek feature'da kalmalı
-- Kendi pattern tercihini dayatma — seçenek sun, karar geliştiricide
+- Otomatik test coverage su an sinirli; case odagi nedeniyle manuel dogrulama agirlikli gidildi.
+- `AbilityExecutionValueOverrideSO` temel bir override seti sunar; tam "volume profile" benzeri override stack ileri faza birakildi.
+- Energy regen su an sabit (`10/s`) ve config asset'e alinmadi; hizli case iterasyonu icin bilincli sade tutuldu.
 
-### YAP — Aktif Beklentiler
-- Mimariyi bozan bir şey istenirse **uyar ve alternatif sun**
-  - Örnek: *"Bu iki feature arasında doğrudan referans oluşturur. MessagePipe ile çözebiliriz, ister misin?"*
-- Her yeni sistem için önce **interface tanımla**
-- VContainer kullanımında **hangi scope'a bind edileceğini** belirt
-- Yeni MessagePipe event gerekiyorsa **hangi dosyaya gideceğini** söyle
+## 9. Dokusmanlar
 
-### Belirsizlik Durumunda
-- Mimari karar gerektiriyorsa **2-3 seçenek sun**, karar geliştiricide
-- "Feature mı, Shared mı, Core mu?" belirsizse **sor**
-- "Art asset mi, feature data'sı mı?" → art ise `Art/`, config ise `Features/.../Data/`
+- `Docs/Features/AbilitySystem.md`
+- `Docs/Features/Locomotion.md`
+- `Docs/Features/Animation.md`
 
----
+## 10. Gelecek Faz Onerileri
 
-## 🌿 Git Kuralları
-
-### Branch Yapısı
-```
-main          → production-ready
-develop       → aktif geliştirme
-feature/xxx   → yeni özellik
-fix/xxx       → bug fix
-refactor/xxx  → iyileştirme
-```
-
-### Commit Formatı
-```
-[feat]     player dash ability eklendi
-[fix]      enemy spawn pozisyon hatası düzeltildi
-[refactor] PlayerController SRP'ye göre bölündü
-[perf]     object pool enemy sisteme uygulandı
-[docs]     CLAUDE.md güncellendi
-[art]      player run animasyonu eklendi
-```
-
----
-
-## ✅ Yeni Feature Checklist
-
-- [ ] `Features/FeatureName/` klasörü oluşturuldu
-- [ ] Interface tanımlandı
-- [ ] ScriptableObject data class'ı → `Features/FeatureName/Data/`
-- [ ] Başka feature'larla iletişim MessagePipe üzerinden kuruldu
-- [ ] VContainer scope gerekiyorsa tanımlandı
-- [ ] Ham art asset'leri `Art/` klasöründe, prefab feature'da
-- [ ] Magic number yok
-- [ ] Tekrar eden nesneler için ObjectPool kullanıldı
-- [ ] UniTask kullanıldı, Coroutine yok
-- [ ] Singleton yok
-- [ ] Temel test yazıldı
-- [ ] CLAUDE.md ile çelişen karar alındıysa güncellendi
-
----
-
-## 📌 Proje Spesifik Notlar
-
-*(Buraya projeye özel kararları, SDK bilgilerini, kısıtlamaları ekle)*
-
-- Kullanılan SDKs: *(örn: Addressables, Firebase)*
-- Hedef platform: *(örn: iOS 13+, Android API 24+)*
-- Özel kurallar: *(buraya projeye özgü eklemeler)*
+- Editor tooling:
+  - Ability authoring validator window
+  - Runtime debug panel (energy, cooldown, lock state)
+- Test:
+  - Ability validator ve service katmani icin edit mode testleri
+  - Core executor akisi icin play mode smoke testleri
+- Override sistemi:
+  - Daha genel ve zincirlenebilir override pipeline
