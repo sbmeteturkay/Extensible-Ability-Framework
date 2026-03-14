@@ -6,9 +6,9 @@ namespace CaseStudy.Feature.AbilitySystem.Contracts
 {
     public interface IAbilityController
     {
-        void Configure(IReadOnlyDictionary<string, AbilityDataSO> loadout, AbilityContext context);
+        void Configure(IReadOnlyDictionary<int, AbilityDataSO> loadout, AbilityContext context);
 
-        bool TryTrigger(string slotKey);
+        bool TryTrigger(int slotIndex);
 
         float GetCooldownRemaining(string abilityKey);
     }

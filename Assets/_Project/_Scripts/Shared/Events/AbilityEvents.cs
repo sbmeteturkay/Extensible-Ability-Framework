@@ -4,23 +4,24 @@ namespace CaseStudy.Shared.AbilitySystem.Events
 {
     public readonly struct AbilityTriggerRequestedEvent
     {
-        public AbilityTriggerRequestedEvent(string slotKey)
+        public AbilityTriggerRequestedEvent(int slotIndex)
         {
-            SlotKey = slotKey;
+            SlotIndex = slotIndex;
         }
 
-        public string SlotKey { get; }
+        public int SlotIndex { get; }
     }
 
     public readonly struct AbilityTriggeredEvent
     {
-        public AbilityTriggeredEvent(string abilityKey,int abilityIndex)
+        public AbilityTriggeredEvent(string abilityKey, int abilityIndex)
         {
             AbilityKey = abilityKey;
             AbilityIndex = abilityIndex;
         }
 
         public string AbilityKey { get; }
+
         public int AbilityIndex { get; }
     }
 
@@ -40,14 +41,14 @@ namespace CaseStudy.Shared.AbilitySystem.Events
     public readonly struct AbilityExecutionDiagnosticEvent
     {
         public AbilityExecutionDiagnosticEvent(
-            string slotKey,
+            int slotIndex,
             string abilityKey,
             AbilityFailureReason reason,
             string stage,
             string source,
             string message)
         {
-            SlotKey = slotKey;
+            SlotIndex = slotIndex;
             AbilityKey = abilityKey;
             Reason = reason;
             Stage = stage;
@@ -55,7 +56,7 @@ namespace CaseStudy.Shared.AbilitySystem.Events
             Message = message;
         }
 
-        public string SlotKey { get; }
+        public int SlotIndex { get; }
 
         public string AbilityKey { get; }
 
@@ -122,14 +123,14 @@ namespace CaseStudy.Shared.AbilitySystem.Events
 
     public readonly struct AbilityLoadoutSlotAssignedEvent
     {
-        public AbilityLoadoutSlotAssignedEvent(string slotKey, string abilityKey, Sprite icon)
+        public AbilityLoadoutSlotAssignedEvent(int slotIndex, string abilityKey, Sprite icon)
         {
-            SlotKey = slotKey;
+            SlotIndex = slotIndex;
             AbilityKey = abilityKey;
             Icon = icon;
         }
 
-        public string SlotKey { get; }
+        public int SlotIndex { get; }
 
         public string AbilityKey { get; }
 

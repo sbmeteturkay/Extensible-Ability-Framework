@@ -16,6 +16,7 @@ MonoBehaviour:
   _impactVfxPrefab: {fileID: 0}
   _impactVfxDelaySeconds: 0
   _impactVfxAutoReturnSeconds: 2
+  _maxPoolSize: 5
   _projectileSpeed: 10
   _maxLifeTimeSeconds: 2
   _hitRadius: 0.1

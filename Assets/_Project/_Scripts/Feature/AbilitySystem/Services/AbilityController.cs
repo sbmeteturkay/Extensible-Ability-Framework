@@ -27,7 +27,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         private readonly IPublisher<AbilityExecutionFailedEvent> _executionFailedPublisher;
         private readonly IPublisher<AbilityExecutionDiagnosticEvent> _executionDiagnosticPublisher;
 
-        private readonly Dictionary<string, IAbility> _abilityBySlotKey = new(StringComparer.Ordinal);
+        private readonly Dictionary<int, IAbility> _abilityBySlotIndex = new();
         private readonly Dictionary<string, AbilityDataSO> _abilityDataByKey = new(StringComparer.Ordinal);
         private readonly Dictionary<string, AbilityOverrideSO[]> _overridesByAbilityKey = new(StringComparer.Ordinal);
         private readonly List<IAbility> _configuredAbilities = new(4);
@@ -75,7 +75,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             _triggerSubscription = null;
         }
 
-        public void Configure(IReadOnlyDictionary<string, AbilityDataSO> loadout, AbilityContext context)
+        public void Configure(IReadOnlyDictionary<int, AbilityDataSO> loadout, AbilityContext context)
         {
             if (loadout == null)
             {
@@ -84,17 +84,17 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
             _context = context ?? throw new ArgumentNullException(nameof(context));
 
-            _abilityBySlotKey.Clear();
+            _abilityBySlotIndex.Clear();
             _abilityDataByKey.Clear();
             _overridesByAbilityKey.Clear();
             _configuredAbilities.Clear();
 
-            foreach (KeyValuePair<string, AbilityDataSO> pair in loadout)
+            foreach (KeyValuePair<int, AbilityDataSO> pair in loadout)
             {
-                string slotKey = AbilitySlotKeyUtility.Normalize(pair.Key);
+                int slotIndex = pair.Key;
                 AbilityDataSO data = pair.Value;
 
-                if (string.IsNullOrWhiteSpace(slotKey) || data == null)
+                if (slotIndex < 0 || data == null)
                 {
                     continue;
                 }
@@ -104,36 +104,35 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     continue;
                 }
 
-                if (_abilityBySlotKey.ContainsKey(slotKey))
+                if (_abilityBySlotIndex.ContainsKey(slotIndex))
                 {
-                    Debug.LogWarning($"AbilityController: duplicate slot key '{slotKey}' detected. Last ability wins.");
+                    Debug.LogWarning($"AbilityController: duplicate slot index '{slotIndex}' detected. Last ability wins.");
                 }
 
                 ability.Initialize(_context, data);
-                _abilityBySlotKey[slotKey] = ability;
+                _abilityBySlotIndex[slotIndex] = ability;
                 _abilityDataByKey[data.AbilityKey] = data;
                 _overridesByAbilityKey[data.AbilityKey] = BuildOverrideArray(data.Overrides);
                 _configuredAbilities.Add(ability);
             }
         }
 
-        public bool TryTrigger(string slotKey)
+        public bool TryTrigger(int slotIndex)
         {
-            slotKey = AbilitySlotKeyUtility.Normalize(slotKey);
-            if (string.IsNullOrWhiteSpace(slotKey))
+            if (slotIndex < 0)
             {
                 return false;
             }
 
-            if (!_abilityBySlotKey.TryGetValue(slotKey, out IAbility ability))
+            if (!_abilityBySlotIndex.TryGetValue(slotIndex, out IAbility ability))
             {
                 PublishFailure(
-                    slotKey,
+                    slotIndex,
                     string.Empty,
                     AbilityFailureReason.InvalidConfiguration,
                     "ResolveSlot",
                     nameof(AbilityController),
-                    "No ability configured for slot.");
+                    "No ability configured for slot index.");
                 return false;
             }
 
@@ -142,7 +141,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             if (!_abilityDataByKey.TryGetValue(abilityKey, out AbilityDataSO data))
             {
                 PublishFailure(
-                    slotKey,
+                    slotIndex,
                     abilityKey,
                     AbilityFailureReason.InvalidConfiguration,
                     "ResolveData",
@@ -160,7 +159,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     out string overrideFailureMessage))
             {
                 PublishFailure(
-                    slotKey,
+                    slotIndex,
                     abilityKey,
                     overrideFailureReason,
                     "BeforeTriggerOverrides",
@@ -172,7 +171,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             if (!_cooldownService.IsReady(abilityKey))
             {
                 PublishFailure(
-                    slotKey,
+                    slotIndex,
                     abilityKey,
                     AbilityFailureReason.CooldownActive,
                     "CooldownCheck",
@@ -184,7 +183,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             if (!ability.CanExecute())
             {
                 PublishFailure(
-                    slotKey,
+                    slotIndex,
                     abilityKey,
                     AbilityFailureReason.InvalidConfiguration,
                     "CanExecute",
@@ -196,7 +195,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             if (!_energyService.TryConsume(executionOptions.EnergyCost))
             {
                 PublishFailure(
-                    slotKey,
+                    slotIndex,
                     abilityKey,
                     AbilityFailureReason.NotEnoughEnergy,
                     "EnergyCheck",
@@ -205,7 +204,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 return false;
             }
 
-            ExecuteAbilityAsync(slotKey, ability, data, executionOptions).Forget();
+            ExecuteAbilityAsync(slotIndex, ability, data, executionOptions).Forget();
             return true;
         }
 
@@ -216,10 +215,10 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
         private void OnTriggerRequested(AbilityTriggerRequestedEvent evt)
         {
-            TryTrigger(evt.SlotKey);
+            TryTrigger(evt.SlotIndex);
         }
 
-        private async UniTaskVoid ExecuteAbilityAsync(string slotKey, IAbility ability, AbilityDataSO data, AbilityExecutionOptions executionOptions)
+        private async UniTaskVoid ExecuteAbilityAsync(int slotIndex, IAbility ability, AbilityDataSO data, AbilityExecutionOptions executionOptions)
         {
             bool locomotionLockPushed = false;
             bool shouldLockLocomotion = executionOptions.ShouldLockLocomotion;
@@ -233,10 +232,10 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     locomotionLockPushed = true;
                     lockStartedAt = Time.time;
                 }
-                
+
                 PlayCastFeedback(data);
 
-                _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey,_configuredAbilities.IndexOf(ability))); 
+                _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey, slotIndex));
 
                 await ability.ExecuteAsync(CancellationToken.None);
 
@@ -254,7 +253,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 _energyService.Restore(executionOptions.EnergyCost);
 
                 PublishFailure(
-                    slotKey,
+                    slotIndex,
                     ability.AbilityKey,
                     AbilityFailureReason.InvalidConfiguration,
                     "ExecuteAsync",
@@ -354,7 +353,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         }
 
         private void PublishFailure(
-            string slotKey,
+            int slotIndex,
             string abilityKey,
             AbilityFailureReason reason,
             string stage,
@@ -363,7 +362,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         {
             _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, reason));
             _executionDiagnosticPublisher.Publish(new AbilityExecutionDiagnosticEvent(
-                slotKey,
+                slotIndex,
                 abilityKey,
                 reason,
                 stage,
@@ -499,5 +498,3 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         }
     }
 }
-
-

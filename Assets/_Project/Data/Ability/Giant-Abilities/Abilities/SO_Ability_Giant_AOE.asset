@@ -25,4 +25,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f81313ccb09c41938d6bedece361708b, type: 2}
   _overrides: []
   _castVfxPrefab: {fileID: 0}
-  _castSfx: {fileID: 0}
+  _castSfx: {fileID: 8300000, guid: 7e26c9daf4c32483b9c2790e662d3f1b, type: 3}

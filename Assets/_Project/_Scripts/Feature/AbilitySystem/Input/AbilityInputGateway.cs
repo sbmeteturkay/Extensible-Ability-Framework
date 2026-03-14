@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using CaseStudy.Feature.AbilitySystem.Data;
 using CaseStudy.Shared.AbilitySystem.Events;
 using MessagePipe;
 using UnityEngine;
@@ -10,24 +9,11 @@ using VContainer;
 namespace CaseStudy.Feature.AbilitySystem.Input
 {
     /// <summary>
-    /// Publishes slot trigger requests from Input System actions.
-    /// Supports any number of slot bindings.
+    /// Publishes trigger requests from Input System actions.
+    /// Input list order defines slot index.
     /// </summary>
     public sealed class AbilityInputGateway : MonoBehaviour
     {
-        [Serializable]
-        private sealed class InputSlotBinding
-        {
-            [SerializeField] private SlotDefinitionSO _slot;
-            [SerializeField] private InputActionReference _action;
-
-            public SlotDefinitionSO Slot => _slot;
-
-            public string SlotKey => _slot != null ? AbilitySlotKeyUtility.Normalize(_slot.SlotKey) : string.Empty;
-
-            public InputActionReference Action => _action;
-        }
-
         private readonly struct RegisteredBinding
         {
             public readonly InputAction Action;
@@ -40,8 +26,8 @@ namespace CaseStudy.Feature.AbilitySystem.Input
             }
         }
 
-        [Header("Input Bindings")]
-        [SerializeField] private List<InputSlotBinding> _bindings = new(3);
+        [Header("Input Actions")]
+        [SerializeField] private List<InputActionReference> _actions = new(3);
 
         private readonly List<RegisteredBinding> _registeredBindings = new(4);
         private IPublisher<AbilityTriggerRequestedEvent> _triggerPublisher;
@@ -66,23 +52,23 @@ namespace CaseStudy.Feature.AbilitySystem.Input
         {
             UnbindAll();
 
-            if (_bindings == null)
+            if (_actions == null)
             {
                 return;
             }
 
-            int count = _bindings.Count;
-            for (int i = 0; i < count; i++)
+            int count = _actions.Count;
+            for (int slotIndex = 0; slotIndex < count; slotIndex++)
             {
-                InputSlotBinding binding = _bindings[i];
-                if (binding == null || binding.Slot == null || string.IsNullOrWhiteSpace(binding.SlotKey) || binding.Action == null || binding.Action.action == null)
+                InputActionReference actionReference = _actions[slotIndex];
+                if (actionReference == null || actionReference.action == null)
                 {
                     continue;
                 }
 
-                string slotKey = binding.SlotKey;
-                InputAction action = binding.Action.action;
-                Action<InputAction.CallbackContext> callback = _ => Publish(slotKey);
+                int capturedSlotIndex = slotIndex;
+                InputAction action = actionReference.action;
+                Action<InputAction.CallbackContext> callback = _ => Publish(capturedSlotIndex);
 
                 action.performed += callback;
                 if (!action.enabled)
@@ -109,16 +95,14 @@ namespace CaseStudy.Feature.AbilitySystem.Input
             _registeredBindings.Clear();
         }
 
-        private void Publish(string slotKey)
+        private void Publish(int slotIndex)
         {
-            slotKey = AbilitySlotKeyUtility.Normalize(slotKey);
-            if (_triggerPublisher == null || string.IsNullOrWhiteSpace(slotKey))
+            if (_triggerPublisher == null || slotIndex < 0)
             {
                 return;
             }
 
-            _triggerPublisher.Publish(new AbilityTriggerRequestedEvent(slotKey));
+            _triggerPublisher.Publish(new AbilityTriggerRequestedEvent(slotIndex));
         }
     }
 }
-

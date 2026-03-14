@@ -1,60 +1,29 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Data
 {
     /// <summary>
-    /// Defines which ability data is assigned to each runtime slot.
-    /// Uses slot definition assets for typo-safe binding.
+    /// Defines ordered ability list for runtime slots.
+    /// Slot index is the list index.
     /// </summary>
     [CreateAssetMenu(fileName = "SO_AbilityLoadout", menuName = "Ability/Loadout")]
     public sealed class AbilityLoadoutSO : ScriptableObject
     {
-        [Serializable]
-        public sealed class AbilityLoadoutEntry
+        [SerializeField] private List<AbilityDataSO> _abilities = new(3);
+
+        public IReadOnlyList<AbilityDataSO> Abilities => _abilities;
+
+        public int SlotCount => _abilities != null ? _abilities.Count : 0;
+
+        public AbilityDataSO GetAbilityAt(int slotIndex)
         {
-            [SerializeField] private SlotDefinitionSO _slot;
-            [SerializeField] private AbilityDataSO _abilityData;
-
-            public SlotDefinitionSO Slot => _slot;
-
-            public string SlotKey => _slot != null ? AbilitySlotKeyUtility.Normalize(_slot.SlotKey) : string.Empty;
-
-            public AbilityDataSO AbilityData => _abilityData;
-        }
-
-        [SerializeField] private List<AbilityLoadoutEntry> _slots = new(3);
-
-        public IReadOnlyList<AbilityLoadoutEntry> Slots => _slots;
-
-        public int GetConfiguredSlots(List<AbilityLoadoutEntry> output)
-        {
-            if (output == null)
+            if (_abilities == null || slotIndex < 0 || slotIndex >= _abilities.Count)
             {
-                throw new ArgumentNullException(nameof(output));
+                return null;
             }
 
-            output.Clear();
-            if (_slots == null)
-            {
-                return 0;
-            }
-
-            int count = _slots.Count;
-            for (int i = 0; i < count; i++)
-            {
-                AbilityLoadoutEntry entry = _slots[i];
-                if (entry == null || entry.Slot == null || entry.AbilityData == null || string.IsNullOrWhiteSpace(entry.SlotKey))
-                {
-                    continue;
-                }
-
-                output.Add(entry);
-            }
-
-            return output.Count;
+            return _abilities[slotIndex];
         }
     }
 }
-

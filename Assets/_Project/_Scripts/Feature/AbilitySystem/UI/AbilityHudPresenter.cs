@@ -24,7 +24,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
         private ISubscriber<AbilityCooldownUpdatedEvent> _cooldownUpdatedSubscriber;
         private ISubscriber<AbilityCooldownCompletedEvent> _cooldownCompletedSubscriber;
 
-        private readonly Dictionary<string, string> _slotKeyByAbilityKey = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, int> _slotIndexByAbilityKey = new(StringComparer.Ordinal);
 
         private IDisposable _slotAssignedSubscription;
         private IDisposable _energySubscription;
@@ -108,15 +108,13 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
         private void OnSlotAssigned(AbilityLoadoutSlotAssignedEvent evt)
         {
-            string abilityKey = AbilitySlotKeyUtility.Normalize(evt.AbilityKey);
-            string slotKey = AbilitySlotKeyUtility.Normalize(evt.SlotKey);
-            if (string.IsNullOrWhiteSpace(abilityKey) || string.IsNullOrWhiteSpace(slotKey))
+            if (string.IsNullOrWhiteSpace(evt.AbilityKey) || evt.SlotIndex < 0)
             {
                 return;
             }
 
-            _slotKeyByAbilityKey[abilityKey] = slotKey;
-            _view.BindSlot(slotKey, evt.Icon);
+            _slotIndexByAbilityKey[evt.AbilityKey] = evt.SlotIndex;
+            _view.BindSlot(evt.SlotIndex, evt.Icon);
         }
 
         private void OnEnergyChanged(AbilityEnergyChangedEvent evt)
@@ -126,44 +124,42 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 
         private void OnCooldownStarted(AbilityCooldownStartedEvent evt)
         {
-            if (!_slotKeyByAbilityKey.TryGetValue(evt.AbilityKey, out string slotKey))
+            if (!_slotIndexByAbilityKey.TryGetValue(evt.AbilityKey, out int slotIndex))
             {
                 return;
             }
 
-            _view.SetCooldown(slotKey, evt.DurationSeconds, 1f);
+            _view.SetCooldown(slotIndex, evt.DurationSeconds, 1f);
         }
 
         private void OnCooldownUpdated(AbilityCooldownUpdatedEvent evt)
         {
-            if (!_slotKeyByAbilityKey.TryGetValue(evt.AbilityKey, out string slotKey))
+            if (!_slotIndexByAbilityKey.TryGetValue(evt.AbilityKey, out int slotIndex))
             {
                 return;
             }
 
-            _view.SetCooldown(slotKey, evt.RemainingSeconds, evt.NormalizedRemaining);
+            _view.SetCooldown(slotIndex, evt.RemainingSeconds, evt.NormalizedRemaining);
         }
 
         private void OnCooldownCompleted(AbilityCooldownCompletedEvent evt)
         {
-            if (!_slotKeyByAbilityKey.TryGetValue(evt.AbilityKey, out string slotKey))
+            if (!_slotIndexByAbilityKey.TryGetValue(evt.AbilityKey, out int slotIndex))
             {
                 return;
             }
 
-            _view.ClearCooldown(slotKey);
+            _view.ClearCooldown(slotIndex);
         }
 
-        private void OnSlotClicked(string slotKey)
+        private void OnSlotClicked(int slotIndex)
         {
-            slotKey = AbilitySlotKeyUtility.Normalize(slotKey);
-            if (string.IsNullOrWhiteSpace(slotKey))
+            if (slotIndex < 0)
             {
                 return;
             }
 
-            _triggerPublisher.Publish(new AbilityTriggerRequestedEvent(slotKey));
+            _triggerPublisher.Publish(new AbilityTriggerRequestedEvent(slotIndex));
         }
     }
 }
-

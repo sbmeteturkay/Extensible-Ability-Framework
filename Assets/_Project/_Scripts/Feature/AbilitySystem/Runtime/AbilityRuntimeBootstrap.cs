@@ -24,8 +24,6 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         [SerializeField] private AbilityLoadoutSO _loadout;
         [SerializeField] private AbilityTargetingProfileSO _targetingProfile;
 
-        private readonly List<AbilityLoadoutSO.AbilityLoadoutEntry> _loadoutBuffer = new(4);
-
         private IAbilityController _abilityController;
         private ICooldownService _cooldownService;
         private IEnergyService _energyService;
@@ -99,37 +97,33 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                 Debug.LogWarning("AbilityRuntimeBootstrap: targeting profile is not set. Ability target layers will fallback to all layers.");
             }
 
-            int slotCount = _loadout.GetConfiguredSlots(_loadoutBuffer);
-            if (slotCount <= 0)
+            IReadOnlyList<AbilityDataSO> configuredAbilities = _loadout.Abilities;
+            if (configuredAbilities == null || configuredAbilities.Count <= 0)
             {
-                Debug.LogWarning("AbilityRuntimeBootstrap: no configured ability slots in loadout.");
+                Debug.LogWarning("AbilityRuntimeBootstrap: no configured abilities in loadout.");
                 enabled = false;
                 return;
             }
 
-            var mapping = new Dictionary<string, AbilityDataSO>(slotCount, StringComparer.Ordinal);
+            var mapping = new Dictionary<int, AbilityDataSO>(configuredAbilities.Count);
 
-            for (int i = 0; i < slotCount; i++)
+            for (int slotIndex = 0; slotIndex < configuredAbilities.Count; slotIndex++)
             {
-                AbilityLoadoutSO.AbilityLoadoutEntry entry = _loadoutBuffer[i];
-                if (entry == null)
-                {
-                    continue;
-                }
-
-                string slotKey = AbilitySlotKeyUtility.Normalize(entry.SlotKey);
-                AbilityDataSO validatedData = GetValidatedData(slotKey, entry.AbilityData);
+                AbilityDataSO abilityData = configuredAbilities[slotIndex];
+                AbilityDataSO validatedData = GetValidatedData(slotIndex, abilityData);
                 if (validatedData == null)
                 {
                     continue;
                 }
 
-                if (mapping.ContainsKey(slotKey))
-                {
-                    Debug.LogWarning($"AbilityRuntimeBootstrap: duplicate slot key '{slotKey}' in loadout. Last ability wins.");
-                }
+                mapping[slotIndex] = validatedData;
+            }
 
-                mapping[slotKey] = validatedData;
+            if (mapping.Count <= 0)
+            {
+                Debug.LogWarning("AbilityRuntimeBootstrap: no valid abilities found in loadout.");
+                enabled = false;
+                return;
             }
 
             var context = new Domain.AbilityContext(
@@ -144,29 +138,23 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
 
             _abilityController.Configure(mapping, context);
 
-            foreach (KeyValuePair<string, AbilityDataSO> pair in mapping)
+            foreach (KeyValuePair<int, AbilityDataSO> pair in mapping)
             {
                 _slotAssignedPublisher.Publish(new AbilityLoadoutSlotAssignedEvent(pair.Key, pair.Value.AbilityKey, pair.Value.Icon));
             }
         }
 
-        private AbilityDataSO GetValidatedData(string slotKey, AbilityDataSO data)
+        private AbilityDataSO GetValidatedData(int slotIndex, AbilityDataSO data)
         {
-            if (string.IsNullOrWhiteSpace(slotKey))
-            {
-                Debug.LogWarning("AbilityRuntimeBootstrap: encountered loadout entry with empty slot key.");
-                return null;
-            }
-
             if (data == null)
             {
-                Debug.LogWarning($"AbilityRuntimeBootstrap: {slotKey} slot has no ability data.");
+                Debug.LogWarning($"AbilityRuntimeBootstrap: slot {slotIndex} has no ability data.");
                 return null;
             }
 
             if (!data.TryValidateConfiguration(out string validationError))
             {
-                Debug.LogWarning($"AbilityRuntimeBootstrap: {slotKey} -> {data.name} is invalid. {validationError}");
+                Debug.LogWarning($"AbilityRuntimeBootstrap: slot {slotIndex} -> {data.name} is invalid. {validationError}");
                 return null;
             }
 

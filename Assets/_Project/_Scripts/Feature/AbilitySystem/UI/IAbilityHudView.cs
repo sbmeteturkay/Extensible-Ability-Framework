@@ -4,8 +4,8 @@ namespace CaseStudy.Feature.AbilitySystem.UI
     {
         void SetEnergy(float currentEnergy, float maxEnergy);
 
-        void SetCooldown(string abilityKey, float remainingSeconds, float normalizedRemaining);
+        void SetCooldown(int slotIndex, float remainingSeconds, float normalizedRemaining);
 
-        void ClearCooldown(string abilityKey);
+        void ClearCooldown(int slotIndex);
     }
 }

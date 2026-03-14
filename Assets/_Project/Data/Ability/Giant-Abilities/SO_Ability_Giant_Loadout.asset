@@ -12,10 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e08993bfddd22fb4981ef7a096ac1d8b, type: 3}
   m_Name: SO_Ability_Giant_Loadout
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityLoadoutSO
-  _slots:
-  - _slot: {fileID: 11400000, guid: ee4ce215140eaa84a86b5158f241cc40, type: 2}
-    _abilityData: {fileID: 11400000, guid: df298a30ad71e41498ec55ee1f67f686, type: 2}
-  - _slot: {fileID: 11400000, guid: 8897aff181b9c324fa74414ad796a0f7, type: 2}
-    _abilityData: {fileID: 11400000, guid: de1cc896ad1d86243862dfaa565d6e0f, type: 2}
-  - _slot: {fileID: 11400000, guid: 10218898a8266b64ca0b0eed4269aebb, type: 2}
-    _abilityData: {fileID: 11400000, guid: 56a7e2b6c777a6842bfb5be8e58e8ef2, type: 2}
+  _abilities:
+  - {fileID: 11400000, guid: df298a30ad71e41498ec55ee1f67f686, type: 2}
+  - {fileID: 11400000, guid: de1cc896ad1d86243862dfaa565d6e0f, type: 2}
+  - {fileID: 11400000, guid: 56a7e2b6c777a6842bfb5be8e58e8ef2, type: 2}

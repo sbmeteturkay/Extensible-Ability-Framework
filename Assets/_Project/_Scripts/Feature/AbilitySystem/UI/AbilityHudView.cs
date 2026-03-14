@@ -6,6 +6,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
 {
     /// <summary>
     /// Scene HUD implementation for ability slots, cooldowns, and energy.
+    /// Slot index is defined by the widget array order.
     /// </summary>
     public sealed class AbilityHudView : MonoBehaviour
     {
@@ -16,7 +17,7 @@ namespace CaseStudy.Feature.AbilitySystem.UI
         [Header("Slot Widgets")]
         [SerializeField] private AbilityHudSlotWidget[] _slotWidgets;
 
-        public void SetTriggerCallback(System.Action<string> triggerCallback)
+        public void SetTriggerCallback(System.Action<int> triggerCallback)
         {
             if (_slotWidgets == null)
             {
@@ -27,10 +28,13 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             for (int i = 0; i < count; i++)
             {
                 AbilityHudSlotWidget widget = _slotWidgets[i];
-                if (widget != null)
+                if (widget == null)
                 {
-                    widget.SetTriggerCallback(triggerCallback);
+                    continue;
                 }
+
+                widget.SetSlotIndex(i);
+                widget.SetTriggerCallback(triggerCallback);
             }
         }
 
@@ -51,9 +55,9 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             }
         }
 
-        public void BindSlot(string slotKey, Sprite icon)
+        public void BindSlot(int slotIndex, Sprite icon)
         {
-            AbilityHudSlotWidget widget = FindWidget(slotKey);
+            AbilityHudSlotWidget widget = GetWidgetByIndex(slotIndex);
             if (widget == null)
             {
                 return;
@@ -63,9 +67,9 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             widget.ClearCooldown();
         }
 
-        public void SetCooldown(string slotKey, float remainingSeconds, float normalizedRemaining)
+        public void SetCooldown(int slotIndex, float remainingSeconds, float normalizedRemaining)
         {
-            AbilityHudSlotWidget widget = FindWidget(slotKey);
+            AbilityHudSlotWidget widget = GetWidgetByIndex(slotIndex);
             if (widget == null)
             {
                 return;
@@ -74,9 +78,9 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             widget.SetCooldown(remainingSeconds, normalizedRemaining);
         }
 
-        public void ClearCooldown(string slotKey)
+        public void ClearCooldown(int slotIndex)
         {
-            AbilityHudSlotWidget widget = FindWidget(slotKey);
+            AbilityHudSlotWidget widget = GetWidgetByIndex(slotIndex);
             if (widget == null)
             {
                 return;
@@ -85,32 +89,14 @@ namespace CaseStudy.Feature.AbilitySystem.UI
             widget.ClearCooldown();
         }
 
-        private AbilityHudSlotWidget FindWidget(string slotKey)
+        private AbilityHudSlotWidget GetWidgetByIndex(int slotIndex)
         {
-            slotKey = AbilitySlotKeyUtility.Normalize(slotKey);
-            if (_slotWidgets == null || string.IsNullOrWhiteSpace(slotKey))
+            if (_slotWidgets == null || slotIndex < 0 || slotIndex >= _slotWidgets.Length)
             {
                 return null;
             }
 
-            int count = _slotWidgets.Length;
-            for (int i = 0; i < count; i++)
-            {
-                AbilityHudSlotWidget widget = _slotWidgets[i];
-                if (widget == null)
-                {
-                    continue;
-                }
-
-                string widgetSlotKey = AbilitySlotKeyUtility.Normalize(widget.SlotKey);
-                if (widgetSlotKey == slotKey)
-                {
-                    return widget;
-                }
-            }
-
-            return null;
+            return _slotWidgets[slotIndex];
         }
     }
 }
-

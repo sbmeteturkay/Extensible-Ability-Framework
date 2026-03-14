@@ -9,11 +9,11 @@ namespace CaseStudy.Feature.AbilitySystem.UI
         {
         }
 
-        public void SetCooldown(string abilityKey, float remainingSeconds, float normalizedRemaining)
+        public void SetCooldown(int slotIndex, float remainingSeconds, float normalizedRemaining)
         {
         }
 
-        public void ClearCooldown(string abilityKey)
+        public void ClearCooldown(int slotIndex)
         {
         }
     }
