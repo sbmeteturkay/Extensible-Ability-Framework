@@ -14,12 +14,14 @@ namespace CaseStudy.Shared.AbilitySystem.Events
 
     public readonly struct AbilityTriggeredEvent
     {
-        public AbilityTriggeredEvent(string abilityKey)
+        public AbilityTriggeredEvent(string abilityKey,int abilityIndex)
         {
             AbilityKey = abilityKey;
+            AbilityIndex = abilityIndex;
         }
 
         public string AbilityKey { get; }
+        public int AbilityIndex { get; }
     }
 
     public readonly struct AbilityExecutionFailedEvent

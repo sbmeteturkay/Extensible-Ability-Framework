@@ -180,9 +180,9 @@ namespace CaseStudy.Feature.Animation.Runtime
                 _pendingAbilityUsedTrigger = true;
             }
 
-            if (_hasAbilityIndex && !string.IsNullOrWhiteSpace(evt.AbilityKey))
+            if (_hasAbilityIndex)
             {
-                _pendingAbilityIndex = Animator.StringToHash(evt.AbilityKey);
+                _pendingAbilityIndex = evt.AbilityIndex;
                 _hasPendingAbilityIndex = true;
             }
         }

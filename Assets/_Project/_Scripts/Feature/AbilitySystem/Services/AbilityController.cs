@@ -237,7 +237,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 await ability.ExecuteAsync(CancellationToken.None);
 
                 _cooldownService.StartCooldown(ability.AbilityKey, executionOptions.CooldownSeconds);
-                _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey));
+                _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey,_configuredAbilities.IndexOf(ability)));
 
                 await InvokeAfterExecuteOverridesAsync(data, executionOptions);
 
