@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 885a8a7fd1870a14f9d8765231cc62ed, type: 3}
-  m_Name: SO_AoeAbility_Giant
-  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AoeAbilityDataSO
+  m_Script: {fileID: 11500000, guid: da2381e2822648a48b0bd92c566a5baf, type: 3}
+  m_Name: SO_Ability_Giant_AOE
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityDataSO
   _abilityKey: df298a30ad71e41498ec55ee1f67f686
   _displayName: New Ability
   _icon: {fileID: 21300000, guid: 4ca665255adc0204585931b317f67500, type: 3}
@@ -20,12 +20,9 @@ MonoBehaviour:
   _targetGroups: 4
   _movementPolicy: 1
   _minimumMovementLockDurationSeconds: 0.5
+  _executor: {fileID: 11400000, guid: b63f5e20cc59f29429c5d7fca4316f9c, type: 2}
+  _modules:
+  - {fileID: 11400000, guid: f81313ccb09c41938d6bedece361708b, type: 2}
+  _overrides: []
   _castVfxPrefab: {fileID: 0}
   _castSfx: {fileID: 0}
-  _radius: 3
-  _effectDurationSeconds: 1
-  _maxTargets: 32
-  _aoeVfxPrefab: {fileID: 4994997792314849709, guid: 3dd50886582244645be87adb42aa8528, type: 3}
-  _aoeVfxDelaySeconds: 0.2
-  _aoeVfxAutoReturnSeconds: 1
-  _debugColor: {r: 0, g: 1, b: 1, a: 1}

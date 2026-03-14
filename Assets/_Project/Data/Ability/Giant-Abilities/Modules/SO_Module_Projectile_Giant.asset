@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2b3378b588fe1b4290c8f5d2dedc4e2, type: 3}
+  m_Name: SO_Module_Projectile_Giant
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.ProjectileAbilityModuleSO
+  _projectilePrefab: {fileID: 3256030433253130741, guid: 91da0bdcf08d94d4fb8d80f7dd7010af, type: 3}
+  _impactVfxPrefab: {fileID: 0}
+  _impactVfxDelaySeconds: 0
+  _impactVfxAutoReturnSeconds: 2
+  _projectileSpeed: 16
+  _maxLifeTimeSeconds: 2
+  _spawnForwardOffset: 1

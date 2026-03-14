@@ -233,11 +233,12 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     locomotionLockPushed = true;
                     lockStartedAt = Time.time;
                 }
+                
+                _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey,_configuredAbilities.IndexOf(ability)));
 
                 await ability.ExecuteAsync(CancellationToken.None);
 
                 _cooldownService.StartCooldown(ability.AbilityKey, executionOptions.CooldownSeconds);
-                _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey,_configuredAbilities.IndexOf(ability)));
 
                 await InvokeAfterExecuteOverridesAsync(data, executionOptions);
 

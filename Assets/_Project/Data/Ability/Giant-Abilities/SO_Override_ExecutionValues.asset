@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86ffb112a7ad49f08d04bded6600258e, type: 3}
+  m_Name: SO_Override_ExecutionValues
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityExecutionValueOverrideSO
+  _order: 0
+  _overrideEnergyCost: 0
+  _energyCost: 0
+  _overrideCooldownSeconds: 0
+  _cooldownSeconds: 1
+  _overrideMovementLock: 0
+  _shouldLockLocomotion: 0
+  _overrideMinimumLockDuration: 0
+  _minimumLockDurationSeconds: 0
+  _blockTrigger: 0
+  _blockReason: 3

@@ -237,7 +237,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocomotionLifetimeScope
   parentReference:
-    TypeName: 
+    TypeName: CaseStudy.Core.Installers.PlayerLifetimeScope
   autoRun: 1
   autoInjectGameObjects: []
 --- !u!4 &880809943275829215 stripped

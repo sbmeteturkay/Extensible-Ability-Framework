@@ -197,7 +197,7 @@ namespace CaseStudy.Feature.Animation.Runtime
 
             if (_hasAbilityIndex && _hasPendingAbilityIndex)
             {
-                _ownerAnimator.SetInteger(_abilityIndexHash, _pendingAbilityIndex);
+                _ownerAnimator.SetFloat(_abilityIndexHash, _pendingAbilityIndex);
                 _hasPendingAbilityIndex = false;
             }
         }
