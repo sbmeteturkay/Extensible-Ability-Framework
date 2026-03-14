@@ -30,6 +30,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         private readonly Dictionary<int, IAbility> _abilityBySlotIndex = new();
         private readonly Dictionary<string, AbilityDataSO> _abilityDataByKey = new(StringComparer.Ordinal);
         private readonly Dictionary<string, AbilityOverrideSO[]> _overridesByAbilityKey = new(StringComparer.Ordinal);
+        private readonly HashSet<string> _executingAbilityKeys = new(StringComparer.Ordinal);
         private readonly List<IAbility> _configuredAbilities = new(4);
 
         private AbilityContext _context;
@@ -87,6 +88,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             _abilityBySlotIndex.Clear();
             _abilityDataByKey.Clear();
             _overridesByAbilityKey.Clear();
+            _executingAbilityKeys.Clear();
             _configuredAbilities.Clear();
 
             foreach (KeyValuePair<int, AbilityDataSO> pair in loadout)
@@ -179,7 +181,17 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     "Cooldown is still active.");
                 return false;
             }
-
+            if (_executingAbilityKeys.Contains(abilityKey))
+            {
+                PublishFailure(
+                    slotIndex,
+                    abilityKey,
+                    AbilityFailureReason.CooldownActive,
+                    "ExecutionGate",
+                    nameof(AbilityController),
+                    "Ability execution is already in progress.");
+                return false;
+            }
             if (!ability.CanExecute())
             {
                 PublishFailure(
@@ -203,7 +215,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     "Not enough energy.");
                 return false;
             }
-
+            _executingAbilityKeys.Add(abilityKey);
             ExecuteAbilityAsync(slotIndex, ability, data, executionOptions).Forget();
             return true;
         }
@@ -262,6 +274,8 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             }
             finally
             {
+                _executingAbilityKeys.Remove(ability.AbilityKey);
+
                 if (locomotionLockPushed && _context?.LocomotionLockService != null)
                 {
                     _context.LocomotionLockService.PopLock();
@@ -498,3 +512,4 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         }
     }
 }
+
