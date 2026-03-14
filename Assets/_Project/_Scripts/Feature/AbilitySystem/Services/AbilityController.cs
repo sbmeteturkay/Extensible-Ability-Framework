@@ -25,6 +25,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         private readonly ISubscriber<AbilityTriggerRequestedEvent> _triggerSubscriber;
         private readonly IPublisher<AbilityTriggeredEvent> _triggeredPublisher;
         private readonly IPublisher<AbilityExecutionFailedEvent> _executionFailedPublisher;
+        private readonly IPublisher<AbilityExecutionDiagnosticEvent> _executionDiagnosticPublisher;
 
         private readonly Dictionary<string, IAbility> _abilityBySlotKey = new(StringComparer.Ordinal);
         private readonly Dictionary<string, AbilityDataSO> _abilityDataByKey = new(StringComparer.Ordinal);
@@ -40,7 +41,8 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             IEnergyService energyService,
             ISubscriber<AbilityTriggerRequestedEvent> triggerSubscriber,
             IPublisher<AbilityTriggeredEvent> triggeredPublisher,
-            IPublisher<AbilityExecutionFailedEvent> executionFailedPublisher)
+            IPublisher<AbilityExecutionFailedEvent> executionFailedPublisher,
+            IPublisher<AbilityExecutionDiagnosticEvent> executionDiagnosticPublisher)
         {
             _abilityFactory = abilityFactory;
             _cooldownService = cooldownService;
@@ -48,6 +50,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             _triggerSubscriber = triggerSubscriber;
             _triggeredPublisher = triggeredPublisher;
             _executionFailedPublisher = executionFailedPublisher;
+            _executionDiagnosticPublisher = executionDiagnosticPublisher;
         }
 
         public void Start()
@@ -124,6 +127,13 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
             if (!_abilityBySlotKey.TryGetValue(slotKey, out IAbility ability))
             {
+                PublishFailure(
+                    slotKey,
+                    string.Empty,
+                    AbilityFailureReason.InvalidConfiguration,
+                    "ResolveSlot",
+                    nameof(AbilityController),
+                    "No ability configured for slot.");
                 return false;
             }
 
@@ -131,36 +141,71 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
             if (!_abilityDataByKey.TryGetValue(abilityKey, out AbilityDataSO data))
             {
-                _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, AbilityFailureReason.InvalidConfiguration));
+                PublishFailure(
+                    slotKey,
+                    abilityKey,
+                    AbilityFailureReason.InvalidConfiguration,
+                    "ResolveData",
+                    nameof(AbilityController),
+                    "Ability data is missing from controller mapping.");
                 return false;
             }
 
             AbilityExecutionOptions executionOptions = AbilityExecutionOptions.FromData(data);
-            if (!TryApplyBeforeTriggerOverrides(data, ref executionOptions, out AbilityFailureReason overrideFailureReason))
+            if (!TryApplyBeforeTriggerOverrides(
+                    data,
+                    ref executionOptions,
+                    out AbilityFailureReason overrideFailureReason,
+                    out string overrideFailureSource,
+                    out string overrideFailureMessage))
             {
-                _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, overrideFailureReason));
+                PublishFailure(
+                    slotKey,
+                    abilityKey,
+                    overrideFailureReason,
+                    "BeforeTriggerOverrides",
+                    overrideFailureSource,
+                    overrideFailureMessage);
                 return false;
             }
 
             if (!_cooldownService.IsReady(abilityKey))
             {
-                _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, AbilityFailureReason.CooldownActive));
+                PublishFailure(
+                    slotKey,
+                    abilityKey,
+                    AbilityFailureReason.CooldownActive,
+                    "CooldownCheck",
+                    nameof(ICooldownService),
+                    "Cooldown is still active.");
                 return false;
             }
 
             if (!ability.CanExecute())
             {
-                _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, AbilityFailureReason.InvalidConfiguration));
+                PublishFailure(
+                    slotKey,
+                    abilityKey,
+                    AbilityFailureReason.InvalidConfiguration,
+                    "CanExecute",
+                    ability.GetType().Name,
+                    "Ability.CanExecute returned false.");
                 return false;
             }
 
             if (!_energyService.TryConsume(executionOptions.EnergyCost))
             {
-                _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, AbilityFailureReason.NotEnoughEnergy));
+                PublishFailure(
+                    slotKey,
+                    abilityKey,
+                    AbilityFailureReason.NotEnoughEnergy,
+                    "EnergyCheck",
+                    nameof(IEnergyService),
+                    "Not enough energy.");
                 return false;
             }
 
-            ExecuteAbilityAsync(ability, data, executionOptions).Forget();
+            ExecuteAbilityAsync(slotKey, ability, data, executionOptions).Forget();
             return true;
         }
 
@@ -174,7 +219,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             TryTrigger(evt.SlotKey);
         }
 
-        private async UniTaskVoid ExecuteAbilityAsync(IAbility ability, AbilityDataSO data, AbilityExecutionOptions executionOptions)
+        private async UniTaskVoid ExecuteAbilityAsync(string slotKey, IAbility ability, AbilityDataSO data, AbilityExecutionOptions executionOptions)
         {
             bool locomotionLockPushed = false;
             bool shouldLockLocomotion = executionOptions.ShouldLockLocomotion;
@@ -201,10 +246,17 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     await HoldMinimumLockAsync(executionOptions.MinimumMovementLockDurationSeconds, lockStartedAt);
                 }
             }
-            catch
+            catch (Exception exception)
             {
                 _energyService.Restore(executionOptions.EnergyCost);
-                _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(ability.AbilityKey, AbilityFailureReason.InvalidConfiguration));
+
+                PublishFailure(
+                    slotKey,
+                    ability.AbilityKey,
+                    AbilityFailureReason.InvalidConfiguration,
+                    "ExecuteAsync",
+                    ability.GetType().Name,
+                    exception.Message);
             }
             finally
             {
@@ -218,13 +270,19 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         private bool TryApplyBeforeTriggerOverrides(
             AbilityDataSO data,
             ref AbilityExecutionOptions executionOptions,
-            out AbilityFailureReason failureReason)
+            out AbilityFailureReason failureReason,
+            out string failureSource,
+            out string failureMessage)
         {
             failureReason = AbilityFailureReason.None;
+            failureSource = string.Empty;
+            failureMessage = string.Empty;
 
             if (data == null)
             {
                 failureReason = AbilityFailureReason.InvalidConfiguration;
+                failureSource = nameof(AbilityController);
+                failureMessage = "Ability data is null.";
                 return false;
             }
 
@@ -249,6 +307,8 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     failureReason = overrideFailure == AbilityFailureReason.None
                         ? AbilityFailureReason.InvalidConfiguration
                         : overrideFailure;
+                    failureSource = abilityOverride.name;
+                    failureMessage = "Override blocked trigger in TryApplyBeforeTrigger.";
                     return false;
                 }
             }
@@ -288,6 +348,24 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     Debug.LogWarning($"AbilityController: after-execute override failed on '{abilityOverride.name}'. {exception.Message}");
                 }
             }
+        }
+
+        private void PublishFailure(
+            string slotKey,
+            string abilityKey,
+            AbilityFailureReason reason,
+            string stage,
+            string source,
+            string message)
+        {
+            _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, reason));
+            _executionDiagnosticPublisher.Publish(new AbilityExecutionDiagnosticEvent(
+                slotKey,
+                abilityKey,
+                reason,
+                stage,
+                string.IsNullOrWhiteSpace(source) ? nameof(AbilityController) : source,
+                string.IsNullOrWhiteSpace(message) ? "No failure message." : message));
         }
 
         private static async UniTask HoldMinimumLockAsync(float configuredMinimumSeconds, float lockStartedAt)

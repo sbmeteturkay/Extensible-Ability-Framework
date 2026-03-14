@@ -1,4 +1,4 @@
-﻿using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.AbilitySystem.Events;
 using MessagePipe;
 using VContainer;
 using VContainer.Unity;
@@ -18,6 +18,7 @@ namespace CaseStudy.Core.Installers
             builder.RegisterMessageBroker<AbilityTriggerRequestedEvent>(messagePipeOptions);
             builder.RegisterMessageBroker<AbilityTriggeredEvent>(messagePipeOptions);
             builder.RegisterMessageBroker<AbilityExecutionFailedEvent>(messagePipeOptions);
+            builder.RegisterMessageBroker<AbilityExecutionDiagnosticEvent>(messagePipeOptions);
             builder.RegisterMessageBroker<AbilityCooldownStartedEvent>(messagePipeOptions);
             builder.RegisterMessageBroker<AbilityCooldownUpdatedEvent>(messagePipeOptions);
             builder.RegisterMessageBroker<AbilityCooldownCompletedEvent>(messagePipeOptions);

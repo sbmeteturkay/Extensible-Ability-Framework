@@ -35,6 +35,37 @@ namespace CaseStudy.Shared.AbilitySystem.Events
         public AbilityFailureReason Reason { get; }
     }
 
+    public readonly struct AbilityExecutionDiagnosticEvent
+    {
+        public AbilityExecutionDiagnosticEvent(
+            string slotKey,
+            string abilityKey,
+            AbilityFailureReason reason,
+            string stage,
+            string source,
+            string message)
+        {
+            SlotKey = slotKey;
+            AbilityKey = abilityKey;
+            Reason = reason;
+            Stage = stage;
+            Source = source;
+            Message = message;
+        }
+
+        public string SlotKey { get; }
+
+        public string AbilityKey { get; }
+
+        public AbilityFailureReason Reason { get; }
+
+        public string Stage { get; }
+
+        public string Source { get; }
+
+        public string Message { get; }
+    }
+
     public readonly struct AbilityCooldownStartedEvent
     {
         public AbilityCooldownStartedEvent(string abilityKey, float durationSeconds)
