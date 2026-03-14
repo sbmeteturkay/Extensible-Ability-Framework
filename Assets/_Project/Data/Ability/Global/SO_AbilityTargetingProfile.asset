@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityTargetingProfileSO
   _hitObstacles:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   _hitPlayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   _hitEnemies:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 256
   _hitAllies:
     serializedVersion: 2
     m_Bits: 0

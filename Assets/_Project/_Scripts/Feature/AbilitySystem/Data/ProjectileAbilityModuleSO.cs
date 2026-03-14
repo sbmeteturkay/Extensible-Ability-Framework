@@ -12,6 +12,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         [SerializeField, Min(0f)] private float _projectileSpeed = 16f;
         [SerializeField, Min(0.1f)] private float _maxLifeTimeSeconds = 3f;
         [SerializeField, Min(0f)] private float _hitRadius = 0.1f;
+        [SerializeField] private HitVisualProfileSO _targetHitVisualProfile;
 
         [Header("Spawn")]
         [SerializeField] private float _spawnForwardOffset = 1f;
@@ -35,6 +36,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         public float MaxLifeTimeSeconds => _maxLifeTimeSeconds;
 
         public float HitRadius => _hitRadius;
+
+        public HitVisualProfileSO TargetHitVisualProfile => _targetHitVisualProfile;
 
         public float SpawnForwardOffset => _spawnForwardOffset;
 

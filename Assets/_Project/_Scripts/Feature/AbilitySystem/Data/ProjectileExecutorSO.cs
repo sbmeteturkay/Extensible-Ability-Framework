@@ -51,6 +51,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 parameters.HitRadius,
                 hitLayers,
                 context.OwnerTransform,
+                parameters.TargetHitVisualProfile,
                 parameters.ImpactVfxPrefab,
                 parameters.ImpactVfxDelaySeconds,
                 parameters.ImpactVfxAutoReturnSeconds,
@@ -103,6 +104,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                     module.ProjectileSpeed,
                     module.MaxLifeTimeSeconds,
                     module.HitRadius,
+                    module.TargetHitVisualProfile,
                     module.SpawnForwardOffset,
                     module.SpawnHorizontalOffset,
                     module.SpawnVerticalOffset,
@@ -192,6 +194,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 float projectileSpeed,
                 float maxLifeTimeSeconds,
                 float hitRadius,
+                HitVisualProfileSO targetHitVisualProfile,
                 float spawnForwardOffset,
                 float spawnHorizontalOffset,
                 float spawnVerticalOffset,
@@ -205,6 +208,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 ProjectileSpeed = projectileSpeed;
                 MaxLifeTimeSeconds = maxLifeTimeSeconds;
                 HitRadius = hitRadius;
+                TargetHitVisualProfile = targetHitVisualProfile;
                 SpawnForwardOffset = spawnForwardOffset;
                 SpawnHorizontalOffset = spawnHorizontalOffset;
                 SpawnVerticalOffset = spawnVerticalOffset;
@@ -225,6 +229,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             public float MaxLifeTimeSeconds { get; }
 
             public float HitRadius { get; }
+
+            public HitVisualProfileSO TargetHitVisualProfile { get; }
 
             public float SpawnForwardOffset { get; }
 

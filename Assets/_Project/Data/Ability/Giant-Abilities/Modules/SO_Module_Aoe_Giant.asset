@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: SO_Module_Aoe_Giant
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AoeAbilityModuleSO
   _radius: 3
+  _hitDelaySeconds: 0.3
   _effectDurationSeconds: 1
   _maxTargets: 32
   _aoeVfxPrefab: {fileID: 4994997792314849709, guid: 3dd50886582244645be87adb42aa8528, type: 3}
-  _aoeVfxDelaySeconds: 0.2
+  _aoeVfxDelaySeconds: 0
   _aoeVfxAutoReturnSeconds: 1
+  _targetHitVisualProfile: {fileID: 11400000, guid: c34ed9f73a296ef4aa8601529eef104c, type: 2}

@@ -16,6 +16,12 @@ MonoBehaviour:
   _impactVfxPrefab: {fileID: 0}
   _impactVfxDelaySeconds: 0
   _impactVfxAutoReturnSeconds: 2
-  _projectileSpeed: 16
+  _projectileSpeed: 10
   _maxLifeTimeSeconds: 2
-  _spawnForwardOffset: 1
+  _hitRadius: 0.1
+  _targetHitVisualProfile: {fileID: 11400000, guid: 669551f9f889b59418f0917dcde913af, type: 2}
+  _spawnForwardOffset: 0.5
+  _spawnHorizontalOffset: 0
+  _spawnVerticalOffset: 0.5
+  _aimMaxDistance: 60
+  _aimRayVerticalOffset: 1

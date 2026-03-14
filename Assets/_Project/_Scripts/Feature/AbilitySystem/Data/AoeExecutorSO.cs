@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Domain;
+using CaseStudy.Shared.Vfx.Interfaces;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                    && data.TargetGroups != AbilityTargetGroups.None;
         }
 
-        public override UniTask ExecuteAsync(AbilityContext context, AbilityDataSO data, CancellationToken cancellationToken)
+        public override async UniTask ExecuteAsync(AbilityContext context, AbilityDataSO data, CancellationToken cancellationToken)
         {
             if (!CanExecute(context, data) || !TryResolveParameters(data, out AoeParameters parameters))
             {
@@ -28,6 +29,15 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             }
 
             EnsureBufferSize(parameters.MaxTargets);
+
+            if (parameters.HitDelaySeconds > 0f)
+            {
+                int delayMilliseconds = Mathf.CeilToInt(parameters.HitDelaySeconds * 1000f);
+                if (delayMilliseconds > 0)
+                {
+                    await UniTask.Delay(delayMilliseconds, DelayType.DeltaTime, PlayerLoopTiming.Update, cancellationToken);
+                }
+            }
 
             Vector3 center = context.OwnerTransform.position;
             LayerMask targetLayers = context.ResolveTargetLayers(data);
@@ -47,11 +57,14 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                     continue;
                 }
 
-                Component receiverComponent = hitCollider.GetComponent(typeof(IAoeEffectReceiver)) as Component;
-                if (receiverComponent is IAoeEffectReceiver effectReceiver)
+                Component effectComponent = hitCollider.GetComponent(typeof(IAoeEffectReceiver)) as Component;
+                if (effectComponent is IAoeEffectReceiver effectReceiver)
                 {
                     effectReceiver.ApplyAoeEffect(parameters.EffectDurationSeconds);
                 }
+
+                TryApplyHitVisual(hitCollider, parameters.TargetHitVisualProfile);
+                TrySpawnTargetHitVfx(context.PooledVfxService, hitCollider, parameters.TargetHitVisualProfile);
             }
 
             if (parameters.AoeVfxPrefab != null)
@@ -67,11 +80,9 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 }
                 else
                 {
-                    SpawnAoeVfxAsync(parameters.AoeVfxPrefab, center, parameters.AoeVfxDelaySeconds).Forget();
+                    Debug.LogWarning("AoeExecutorSO: IPooledVfxService is missing. Skipping AOE VFX spawn.");
                 }
             }
-
-            return UniTask.CompletedTask;
         }
 
         public override bool TryValidate(AbilityDataSO data, out string validationError)
@@ -104,11 +115,13 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             {
                 parameters = new AoeParameters(
                     module.Radius,
+                    module.HitDelaySeconds,
                     module.EffectDurationSeconds,
                     module.MaxTargets,
                     module.AoeVfxPrefab,
                     module.AoeVfxDelaySeconds,
-                    module.AoeVfxAutoReturnSeconds);
+                    module.AoeVfxAutoReturnSeconds,
+                    module.TargetHitVisualProfile);
                 return true;
             }
 
@@ -119,6 +132,43 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         private static bool IsValid(AoeParameters parameters)
         {
             return parameters.Radius > 0f && parameters.MaxTargets > 0;
+        }
+
+        private static void TryApplyHitVisual(Collider hitCollider, HitVisualProfileSO visualProfile)
+        {
+            if (hitCollider == null || visualProfile == null)
+            {
+                return;
+            }
+
+            Component visualComponent = hitCollider.GetComponent(typeof(IAbilityHitVisualReceiver)) as Component;
+            if (visualComponent == null)
+            {
+                visualComponent = hitCollider.GetComponentInParent(typeof(IAbilityHitVisualReceiver)) as Component;
+            }
+
+            if (visualComponent is IAbilityHitVisualReceiver visualReceiver)
+            {
+                visualReceiver.ApplyHitVisual(visualProfile);
+            }
+        }
+
+        private static void TrySpawnTargetHitVfx(
+            IPooledVfxService pooledVfxService,
+            Collider hitCollider,
+            HitVisualProfileSO visualProfile)
+        {
+            if (pooledVfxService == null || hitCollider == null || visualProfile == null || visualProfile.HitVfxPrefab == null)
+            {
+                return;
+            }
+
+            pooledVfxService.Spawn(
+                visualProfile.HitVfxPrefab,
+                hitCollider.bounds.center,
+                Quaternion.identity,
+                visualProfile.HitVfxDelaySeconds,
+                visualProfile.HitVfxAutoReturnSeconds);
         }
 
         private void EnsureBufferSize(int requiredSize)
@@ -132,39 +182,31 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             _overlapBuffer = new Collider[clampedSize];
         }
 
-        private static async UniTaskVoid SpawnAoeVfxAsync(GameObject vfxPrefab, Vector3 center, float delaySeconds)
-        {
-            if (delaySeconds > 0f)
-            {
-                int delayMilliseconds = Mathf.CeilToInt(delaySeconds * 1000f);
-                if (delayMilliseconds > 0)
-                {
-                    await UniTask.Delay(delayMilliseconds, DelayType.DeltaTime, PlayerLoopTiming.Update, CancellationToken.None);
-                }
-            }
-
-            UnityEngine.Object.Instantiate(vfxPrefab, center, Quaternion.identity);
-        }
-
         private readonly struct AoeParameters
         {
             public AoeParameters(
                 float radius,
+                float hitDelaySeconds,
                 float effectDurationSeconds,
                 int maxTargets,
                 GameObject aoeVfxPrefab,
                 float aoeVfxDelaySeconds,
-                float aoeVfxAutoReturnSeconds)
+                float aoeVfxAutoReturnSeconds,
+                HitVisualProfileSO targetHitVisualProfile)
             {
                 Radius = radius;
+                HitDelaySeconds = hitDelaySeconds;
                 EffectDurationSeconds = effectDurationSeconds;
                 MaxTargets = maxTargets;
                 AoeVfxPrefab = aoeVfxPrefab;
                 AoeVfxDelaySeconds = aoeVfxDelaySeconds;
                 AoeVfxAutoReturnSeconds = aoeVfxAutoReturnSeconds;
+                TargetHitVisualProfile = targetHitVisualProfile;
             }
 
             public float Radius { get; }
+
+            public float HitDelaySeconds { get; }
 
             public float EffectDurationSeconds { get; }
 
@@ -175,6 +217,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             public float AoeVfxDelaySeconds { get; }
 
             public float AoeVfxAutoReturnSeconds { get; }
+
+            public HitVisualProfileSO TargetHitVisualProfile { get; }
         }
     }
 }

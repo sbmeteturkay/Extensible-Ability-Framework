@@ -1,7 +1,7 @@
 using System;
-using System.Threading;
+using CaseStudy.Feature.AbilitySystem.Contracts;
+using CaseStudy.Feature.AbilitySystem.Data;
 using CaseStudy.Shared.Vfx.Interfaces;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Abilities
@@ -21,6 +21,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         private Vector3 _direction;
         private LayerMask _hitLayers;
         private Transform _ownerTransform;
+        private HitVisualProfileSO _targetHitVisualProfile;
         private GameObject _impactVfxPrefab;
         private float _impactVfxDelaySeconds;
         private float _impactVfxAutoReturnSeconds;
@@ -48,6 +49,8 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
                 if (TryHit(currentPosition, stepDistance, out RaycastHit hit))
                 {
                     transform.position = hit.point;
+                    TryApplyHitVisual(hit.collider);
+                    SpawnTargetHitVfx(hit.point);
                     SpawnImpactVfx(hit.point);
                     ReturnToPool();
                     return;
@@ -71,6 +74,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             float hitRadius,
             LayerMask hitLayers,
             Transform ownerTransform,
+            HitVisualProfileSO targetHitVisualProfile,
             GameObject impactVfxPrefab,
             float impactVfxDelaySeconds,
             float impactVfxAutoReturnSeconds,
@@ -87,6 +91,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             _hitRadius = Mathf.Max(0f, hitRadius);
             _hitLayers = hitLayers;
             _ownerTransform = ownerTransform;
+            _targetHitVisualProfile = targetHitVisualProfile;
             _impactVfxPrefab = impactVfxPrefab;
             _impactVfxDelaySeconds = Mathf.Max(0f, impactVfxDelaySeconds);
             _impactVfxAutoReturnSeconds = Mathf.Max(0f, impactVfxAutoReturnSeconds);
@@ -113,6 +118,46 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
 
             return true;
+        }
+
+        private void TryApplyHitVisual(Collider hitCollider)
+        {
+            if (hitCollider == null || _targetHitVisualProfile == null)
+            {
+                return;
+            }
+
+            Component receiverComponent = hitCollider.GetComponent(typeof(IAbilityHitVisualReceiver)) as Component;
+            if (receiverComponent == null)
+            {
+                receiverComponent = hitCollider.GetComponentInParent(typeof(IAbilityHitVisualReceiver)) as Component;
+            }
+
+            if (receiverComponent is IAbilityHitVisualReceiver visualReceiver)
+            {
+                visualReceiver.ApplyHitVisual(_targetHitVisualProfile);
+            }
+        }
+
+        private void SpawnTargetHitVfx(Vector3 impactPosition)
+        {
+            if (_targetHitVisualProfile == null || _targetHitVisualProfile.HitVfxPrefab == null)
+            {
+                return;
+            }
+
+            if (_pooledVfxService == null)
+            {
+                Debug.LogWarning("ProjectileRuntime: IPooledVfxService is missing. Skipping target hit VFX spawn.");
+                return;
+            }
+
+            _pooledVfxService.Spawn(
+                _targetHitVisualProfile.HitVfxPrefab,
+                impactPosition,
+                Quaternion.identity,
+                _targetHitVisualProfile.HitVfxDelaySeconds,
+                _targetHitVisualProfile.HitVfxAutoReturnSeconds);
         }
 
         private void ReturnToPool()
@@ -144,24 +189,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
                 return;
             }
 
-            if (_impactVfxDelaySeconds <= 0f)
-            {
-                Instantiate(_impactVfxPrefab, impactPosition, Quaternion.identity);
-                return;
-            }
-
-            SpawnImpactVfxDelayedAsync(_impactVfxPrefab, impactPosition, _impactVfxDelaySeconds).Forget();
-        }
-
-        private static async UniTaskVoid SpawnImpactVfxDelayedAsync(GameObject impactVfxPrefab, Vector3 position, float delaySeconds)
-        {
-            int delayMilliseconds = Mathf.CeilToInt(delaySeconds * 1000f);
-            if (delayMilliseconds > 0)
-            {
-                await UniTask.Delay(delayMilliseconds, DelayType.DeltaTime, PlayerLoopTiming.Update, CancellationToken.None);
-            }
-
-            Instantiate(impactVfxPrefab, position, Quaternion.identity);
+            Debug.LogWarning("ProjectileRuntime: IPooledVfxService is missing. Skipping projectile impact VFX spawn.");
         }
     }
 }
