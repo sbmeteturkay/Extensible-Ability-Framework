@@ -33,7 +33,6 @@ namespace CaseStudy.Feature.AbilitySystem.Installers
             builder.Register<AbilityController>(Lifetime.Singleton);
             builder.Register<IAbilityController>(resolver => resolver.Resolve<AbilityController>(), Lifetime.Singleton);
             builder.RegisterEntryPoint<AbilityController>();
-            builder.RegisterEntryPoint<AbilityFactoryBootstrapper>();
         }
     }
 }

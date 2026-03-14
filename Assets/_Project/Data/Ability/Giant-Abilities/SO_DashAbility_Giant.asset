@@ -20,6 +20,7 @@ MonoBehaviour:
   _targetGroups: 4
   _movementPolicy: 1
   _minimumMovementLockDurationSeconds: 0
+  _executor: {fileID: 11400000, guid: 690aeeae429642f4bb1815c4b1296b9f, type: 2}
   _castVfxPrefab: {fileID: 0}
   _castSfx: {fileID: 0}
   _dashDistance: 3

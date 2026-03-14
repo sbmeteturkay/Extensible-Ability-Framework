@@ -2,17 +2,15 @@ using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Data
 {
-    [CreateAssetMenu(fileName = "SO_AoeAbility", menuName = "Ability/AOE Data")]
-    public sealed class AoeAbilityDataSO : AbilityDataSO
+    [CreateAssetMenu(fileName = "SO_Module_Aoe", menuName = "Ability/Modules/AOE Module")]
+    public sealed class AoeAbilityModuleSO : AbilityModuleSO
     {
-        [Header("AOE")]
         [SerializeField, Min(0.1f)] private float _radius = 3f;
         [SerializeField, Min(0f)] private float _effectDurationSeconds = 1f;
         [SerializeField, Min(1)] private int _maxTargets = 32;
         [SerializeField] private GameObject _aoeVfxPrefab;
         [SerializeField, Min(0f)] private float _aoeVfxDelaySeconds;
         [SerializeField, Min(0f)] private float _aoeVfxAutoReturnSeconds = 2f;
-        [SerializeField] private Color _debugColor = Color.cyan;
 
         public float Radius => _radius;
 
@@ -25,7 +23,5 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         public float AoeVfxDelaySeconds => _aoeVfxDelaySeconds;
 
         public float AoeVfxAutoReturnSeconds => _aoeVfxAutoReturnSeconds;
-
-        public Color DebugColor => _debugColor;
     }
 }

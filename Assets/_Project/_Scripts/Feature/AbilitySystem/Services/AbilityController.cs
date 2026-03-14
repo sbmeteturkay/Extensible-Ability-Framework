@@ -28,6 +28,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
         private readonly Dictionary<string, IAbility> _abilityBySlotKey = new(StringComparer.Ordinal);
         private readonly Dictionary<string, AbilityDataSO> _abilityDataByKey = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, AbilityOverrideSO[]> _overridesByAbilityKey = new(StringComparer.Ordinal);
         private readonly List<IAbility> _configuredAbilities = new(4);
 
         private AbilityContext _context;
@@ -82,6 +83,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
             _abilityBySlotKey.Clear();
             _abilityDataByKey.Clear();
+            _overridesByAbilityKey.Clear();
             _configuredAbilities.Clear();
 
             foreach (KeyValuePair<string, AbilityDataSO> pair in loadout)
@@ -107,6 +109,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 ability.Initialize(_context, data);
                 _abilityBySlotKey[slotKey] = ability;
                 _abilityDataByKey[data.AbilityKey] = data;
+                _overridesByAbilityKey[data.AbilityKey] = BuildOverrideArray(data.Overrides);
                 _configuredAbilities.Add(ability);
             }
         }
@@ -126,15 +129,22 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
             string abilityKey = ability.AbilityKey;
 
-            if (!_cooldownService.IsReady(abilityKey))
-            {
-                _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, AbilityFailureReason.CooldownActive));
-                return false;
-            }
-
             if (!_abilityDataByKey.TryGetValue(abilityKey, out AbilityDataSO data))
             {
                 _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, AbilityFailureReason.InvalidConfiguration));
+                return false;
+            }
+
+            AbilityExecutionOptions executionOptions = AbilityExecutionOptions.FromData(data);
+            if (!TryApplyBeforeTriggerOverrides(data, ref executionOptions, out AbilityFailureReason overrideFailureReason))
+            {
+                _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, overrideFailureReason));
+                return false;
+            }
+
+            if (!_cooldownService.IsReady(abilityKey))
+            {
+                _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, AbilityFailureReason.CooldownActive));
                 return false;
             }
 
@@ -144,13 +154,13 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 return false;
             }
 
-            if (!_energyService.TryConsume(data.EnergyCost))
+            if (!_energyService.TryConsume(executionOptions.EnergyCost))
             {
                 _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(abilityKey, AbilityFailureReason.NotEnoughEnergy));
                 return false;
             }
 
-            ExecuteAbilityAsync(ability, data).Forget();
+            ExecuteAbilityAsync(ability, data, executionOptions).Forget();
             return true;
         }
 
@@ -164,10 +174,10 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             TryTrigger(evt.SlotKey);
         }
 
-        private async UniTaskVoid ExecuteAbilityAsync(IAbility ability, AbilityDataSO data)
+        private async UniTaskVoid ExecuteAbilityAsync(IAbility ability, AbilityDataSO data, AbilityExecutionOptions executionOptions)
         {
             bool locomotionLockPushed = false;
-            bool shouldLockLocomotion = ShouldLockLocomotion(data);
+            bool shouldLockLocomotion = executionOptions.ShouldLockLocomotion;
             float lockStartedAt = 0f;
 
             try
@@ -181,17 +191,19 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
                 await ability.ExecuteAsync(CancellationToken.None);
 
-                _cooldownService.StartCooldown(ability.AbilityKey, data.CooldownSeconds);
+                _cooldownService.StartCooldown(ability.AbilityKey, executionOptions.CooldownSeconds);
                 _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey));
+
+                await InvokeAfterExecuteOverridesAsync(data, executionOptions);
 
                 if (locomotionLockPushed)
                 {
-                    await HoldMinimumLockAsync(data, lockStartedAt);
+                    await HoldMinimumLockAsync(executionOptions.MinimumMovementLockDurationSeconds, lockStartedAt);
                 }
             }
             catch
             {
-                _energyService.Restore(data.EnergyCost);
+                _energyService.Restore(executionOptions.EnergyCost);
                 _executionFailedPublisher.Publish(new AbilityExecutionFailedEvent(ability.AbilityKey, AbilityFailureReason.InvalidConfiguration));
             }
             finally
@@ -203,9 +215,83 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             }
         }
 
-        private static async UniTask HoldMinimumLockAsync(AbilityDataSO data, float lockStartedAt)
+        private bool TryApplyBeforeTriggerOverrides(
+            AbilityDataSO data,
+            ref AbilityExecutionOptions executionOptions,
+            out AbilityFailureReason failureReason)
         {
-            float configuredMinimumSeconds = data?.MinimumMovementLockDurationSeconds ?? 0f;
+            failureReason = AbilityFailureReason.None;
+
+            if (data == null)
+            {
+                failureReason = AbilityFailureReason.InvalidConfiguration;
+                return false;
+            }
+
+            if (!_overridesByAbilityKey.TryGetValue(data.AbilityKey, out AbilityOverrideSO[] overrides)
+                || overrides == null
+                || overrides.Length == 0)
+            {
+                executionOptions.Sanitize();
+                return true;
+            }
+
+            for (int i = 0; i < overrides.Length; i++)
+            {
+                AbilityOverrideSO abilityOverride = overrides[i];
+                if (abilityOverride == null)
+                {
+                    continue;
+                }
+
+                if (!abilityOverride.TryApplyBeforeTrigger(_context, data, ref executionOptions, out AbilityFailureReason overrideFailure))
+                {
+                    failureReason = overrideFailure == AbilityFailureReason.None
+                        ? AbilityFailureReason.InvalidConfiguration
+                        : overrideFailure;
+                    return false;
+                }
+            }
+
+            executionOptions.Sanitize();
+            return true;
+        }
+
+        private async UniTask InvokeAfterExecuteOverridesAsync(AbilityDataSO data, AbilityExecutionOptions executionOptions)
+        {
+            if (data == null)
+            {
+                return;
+            }
+
+            if (!_overridesByAbilityKey.TryGetValue(data.AbilityKey, out AbilityOverrideSO[] overrides)
+                || overrides == null
+                || overrides.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < overrides.Length; i++)
+            {
+                AbilityOverrideSO abilityOverride = overrides[i];
+                if (abilityOverride == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    await abilityOverride.OnAfterExecuteAsync(_context, data, executionOptions, CancellationToken.None);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning($"AbilityController: after-execute override failed on '{abilityOverride.name}'. {exception.Message}");
+                }
+            }
+        }
+
+        private static async UniTask HoldMinimumLockAsync(float configuredMinimumSeconds, float lockStartedAt)
+        {
             if (configuredMinimumSeconds <= 0f)
             {
                 configuredMinimumSeconds = DEFAULT_MINIMUM_LOCK_DURATION_SECONDS;
@@ -229,9 +315,71 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             await UniTask.Delay(delayMilliseconds, DelayType.DeltaTime, PlayerLoopTiming.Update, CancellationToken.None);
         }
 
-        private static bool ShouldLockLocomotion(AbilityDataSO data)
+        private static AbilityOverrideSO[] BuildOverrideArray(IReadOnlyList<AbilityOverrideSO> configuredOverrides)
         {
-            return data != null && data.ShouldLockLocomotion;
+            if (configuredOverrides == null || configuredOverrides.Count == 0)
+            {
+                return Array.Empty<AbilityOverrideSO>();
+            }
+
+            int validCount = 0;
+            int sourceCount = configuredOverrides.Count;
+
+            for (int i = 0; i < sourceCount; i++)
+            {
+                if (configuredOverrides[i] != null)
+                {
+                    validCount++;
+                }
+            }
+
+            if (validCount == 0)
+            {
+                return Array.Empty<AbilityOverrideSO>();
+            }
+
+            var output = new AbilityOverrideSO[validCount];
+            int outputIndex = 0;
+
+            for (int i = 0; i < sourceCount; i++)
+            {
+                AbilityOverrideSO candidate = configuredOverrides[i];
+                if (candidate == null)
+                {
+                    continue;
+                }
+
+                output[outputIndex] = candidate;
+                outputIndex++;
+            }
+
+            SortOverridesByOrder(output);
+            return output;
+        }
+
+        private static void SortOverridesByOrder(AbilityOverrideSO[] overrides)
+        {
+            for (int i = 1; i < overrides.Length; i++)
+            {
+                AbilityOverrideSO current = overrides[i];
+                int order = current != null ? current.Order : 0;
+                int j = i - 1;
+
+                while (j >= 0)
+                {
+                    AbilityOverrideSO previous = overrides[j];
+                    int previousOrder = previous != null ? previous.Order : 0;
+                    if (previousOrder <= order)
+                    {
+                        break;
+                    }
+
+                    overrides[j + 1] = previous;
+                    j--;
+                }
+
+                overrides[j + 1] = current;
+            }
         }
 
         private static string NormalizeKey(string key)
@@ -240,4 +388,3 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         }
     }
 }
-

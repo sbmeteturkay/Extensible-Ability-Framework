@@ -2,10 +2,9 @@ using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Data
 {
-    [CreateAssetMenu(fileName = "SO_ProjectileAbility", menuName = "Ability/Projectile Data")]
-    public sealed class ProjectileAbilityDataSO : AbilityDataSO
+    [CreateAssetMenu(fileName = "SO_Module_Projectile", menuName = "Ability/Modules/Projectile Module")]
+    public sealed class ProjectileAbilityModuleSO : AbilityModuleSO
     {
-        [Header("Projectile")]
         [SerializeField] private GameObject _projectilePrefab;
         [SerializeField] private GameObject _impactVfxPrefab;
         [SerializeField, Min(0f)] private float _impactVfxDelaySeconds;
