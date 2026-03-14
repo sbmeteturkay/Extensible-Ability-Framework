@@ -31,21 +31,26 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             ProjectilePool pool = GetOrCreatePool(parameters.ProjectilePrefabRuntime);
             ProjectileRuntime projectile = pool.Get();
 
-            Vector3 direction = context.OwnerTransform.forward;
-            if (direction.sqrMagnitude <= 0.0001f)
+            Vector3 ownerForward = context.OwnerTransform.forward;
+            if (ownerForward.sqrMagnitude <= 0.0001f)
             {
-                direction = Vector3.forward;
+                ownerForward = Vector3.forward;
             }
 
-            Vector3 spawnPosition = context.OwnerTransform.position + direction.normalized * parameters.SpawnForwardOffset;
+            ownerForward.Normalize();
+
+            Vector3 spawnPosition = ResolveSpawnPosition(context, parameters, ownerForward);
             LayerMask hitLayers = context.ResolveTargetLayers(data);
+            Vector3 launchDirection = ResolveLaunchDirection(context, parameters, spawnPosition, ownerForward, hitLayers);
 
             projectile.Launch(
                 spawnPosition,
-                direction,
+                launchDirection,
                 parameters.ProjectileSpeed,
                 parameters.MaxLifeTimeSeconds,
+                parameters.HitRadius,
                 hitLayers,
+                context.OwnerTransform,
                 parameters.ImpactVfxPrefab,
                 parameters.ImpactVfxDelaySeconds,
                 parameters.ImpactVfxAutoReturnSeconds,
@@ -71,7 +76,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
             if (!IsValid(parameters))
             {
-                validationError = "Projectile speed and max lifetime must be greater than 0.";
+                validationError = "Projectile speed, max lifetime and aim distance must be greater than 0.";
                 return false;
             }
 
@@ -97,12 +102,58 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                     module.ImpactVfxAutoReturnSeconds,
                     module.ProjectileSpeed,
                     module.MaxLifeTimeSeconds,
-                    module.SpawnForwardOffset);
+                    module.HitRadius,
+                    module.SpawnForwardOffset,
+                    module.SpawnHorizontalOffset,
+                    module.SpawnVerticalOffset,
+                    module.AimMaxDistance,
+                    module.AimRayVerticalOffset);
                 return true;
             }
 
             parameters = default;
             return false;
+        }
+
+        private static Vector3 ResolveSpawnPosition(AbilityContext context, ProjectileParameters parameters, Vector3 ownerForward)
+        {
+            Transform ownerTransform = context.OwnerTransform;
+            Vector3 ownerPosition = ownerTransform.position;
+            Vector3 ownerRight = ownerTransform.right;
+            Vector3 ownerUp = ownerTransform.up;
+
+            return ownerPosition
+                   + ownerForward * parameters.SpawnForwardOffset
+                   + ownerRight * parameters.SpawnHorizontalOffset
+                   + ownerUp * parameters.SpawnVerticalOffset;
+        }
+
+        private static Vector3 ResolveLaunchDirection(
+            AbilityContext context,
+            ProjectileParameters parameters,
+            Vector3 spawnPosition,
+            Vector3 fallbackForward,
+            LayerMask hitLayers)
+        {
+            Transform ownerTransform = context.OwnerTransform;
+            Vector3 rayOrigin = ownerTransform.position + ownerTransform.up * parameters.AimRayVerticalOffset;
+
+            if (Physics.Raycast(
+                    rayOrigin,
+                    fallbackForward,
+                    out RaycastHit hit,
+                    parameters.AimMaxDistance,
+                    hitLayers,
+                    QueryTriggerInteraction.Ignore))
+            {
+                Vector3 directionToHit = hit.point - spawnPosition;
+                if (directionToHit.sqrMagnitude > 0.0001f)
+                {
+                    return directionToHit.normalized;
+                }
+            }
+
+            return fallbackForward;
         }
 
         private static ProjectileRuntime GetProjectileRuntime(GameObject projectilePrefab)
@@ -114,7 +165,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         {
             return parameters.ProjectilePrefabRuntime != null
                    && parameters.ProjectileSpeed > 0f
-                   && parameters.MaxLifeTimeSeconds > 0f;
+                   && parameters.MaxLifeTimeSeconds > 0f
+                   && parameters.AimMaxDistance > 0f;
         }
 
         private ProjectilePool GetOrCreatePool(ProjectileRuntime projectilePrefab)
@@ -139,7 +191,12 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 float impactVfxAutoReturnSeconds,
                 float projectileSpeed,
                 float maxLifeTimeSeconds,
-                float spawnForwardOffset)
+                float hitRadius,
+                float spawnForwardOffset,
+                float spawnHorizontalOffset,
+                float spawnVerticalOffset,
+                float aimMaxDistance,
+                float aimRayVerticalOffset)
             {
                 ProjectilePrefabRuntime = projectilePrefabRuntime;
                 ImpactVfxPrefab = impactVfxPrefab;
@@ -147,7 +204,12 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 ImpactVfxAutoReturnSeconds = impactVfxAutoReturnSeconds;
                 ProjectileSpeed = projectileSpeed;
                 MaxLifeTimeSeconds = maxLifeTimeSeconds;
+                HitRadius = hitRadius;
                 SpawnForwardOffset = spawnForwardOffset;
+                SpawnHorizontalOffset = spawnHorizontalOffset;
+                SpawnVerticalOffset = spawnVerticalOffset;
+                AimMaxDistance = aimMaxDistance;
+                AimRayVerticalOffset = aimRayVerticalOffset;
             }
 
             public ProjectileRuntime ProjectilePrefabRuntime { get; }
@@ -162,7 +224,17 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
             public float MaxLifeTimeSeconds { get; }
 
+            public float HitRadius { get; }
+
             public float SpawnForwardOffset { get; }
+
+            public float SpawnHorizontalOffset { get; }
+
+            public float SpawnVerticalOffset { get; }
+
+            public float AimMaxDistance { get; }
+
+            public float AimRayVerticalOffset { get; }
         }
     }
 }

@@ -5,29 +5,27 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Abilities
-{ 
+{
     /// <summary>
-    /// Runtime projectile behaviour: movement, collision handling, lifetime, and pool return.
+    /// Physics-independent projectile behaviour: manual movement, query-based hit checks, lifetime, and pool return.
     /// </summary>
-    [RequireComponent(typeof(Rigidbody))]
     public sealed class ProjectileRuntime : MonoBehaviour
     {
-        private Rigidbody _rigidbody;
+        private const float MIN_STEP_DISTANCE = 0.0001f;
+
         private bool _isActive;
         private float _lifeTimeSeconds;
         private float _elapsedSeconds;
+        private float _speed;
+        private float _hitRadius;
+        private Vector3 _direction;
         private LayerMask _hitLayers;
+        private Transform _ownerTransform;
         private GameObject _impactVfxPrefab;
         private float _impactVfxDelaySeconds;
         private float _impactVfxAutoReturnSeconds;
         private IPooledVfxService _pooledVfxService;
         private Action<ProjectileRuntime> _releaseAction;
-
-        private void Awake()
-        {
-            _rigidbody = GetComponent<Rigidbody>();
-            _rigidbody.useGravity = false;
-        }
 
         private void OnEnable()
         {
@@ -41,6 +39,23 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
                 return;
             }
 
+            float stepDistance = _speed * Time.fixedDeltaTime;
+            if (stepDistance > MIN_STEP_DISTANCE)
+            {
+                Vector3 currentPosition = transform.position;
+                Vector3 nextPosition = currentPosition + _direction * stepDistance;
+
+                if (TryHit(currentPosition, stepDistance, out RaycastHit hit))
+                {
+                    transform.position = hit.point;
+                    SpawnImpactVfx(hit.point);
+                    ReturnToPool();
+                    return;
+                }
+
+                transform.position = nextPosition;
+            }
+
             _elapsedSeconds += Time.fixedDeltaTime;
             if (_elapsedSeconds >= _lifeTimeSeconds)
             {
@@ -48,38 +63,30 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
         }
 
-        private void OnCollisionEnter(Collision collision)
-        {
-            if (!_isActive)
-            {
-                return;
-            }
-
-            if (!IsInLayerMask(collision.gameObject.layer, _hitLayers))
-            {
-                return;
-            }
-
-            SpawnImpactVfx();
-            ReturnToPool();
-        }
-
         public void Launch(
             Vector3 position,
             Vector3 direction,
             float speed,
             float lifeTimeSeconds,
+            float hitRadius,
             LayerMask hitLayers,
+            Transform ownerTransform,
             GameObject impactVfxPrefab,
             float impactVfxDelaySeconds,
             float impactVfxAutoReturnSeconds,
             IPooledVfxService pooledVfxService,
             Action<ProjectileRuntime> releaseAction)
         {
-            transform.SetPositionAndRotation(position, Quaternion.LookRotation(direction));
+            Vector3 launchDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
 
+            transform.SetPositionAndRotation(position, Quaternion.LookRotation(launchDirection));
+
+            _direction = launchDirection;
+            _speed = Mathf.Max(0f, speed);
             _lifeTimeSeconds = Mathf.Max(0.05f, lifeTimeSeconds);
+            _hitRadius = Mathf.Max(0f, hitRadius);
             _hitLayers = hitLayers;
+            _ownerTransform = ownerTransform;
             _impactVfxPrefab = impactVfxPrefab;
             _impactVfxDelaySeconds = Mathf.Max(0f, impactVfxDelaySeconds);
             _impactVfxAutoReturnSeconds = Mathf.Max(0f, impactVfxAutoReturnSeconds);
@@ -87,9 +94,25 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             _releaseAction = releaseAction;
             _isActive = true;
             _elapsedSeconds = 0f;
+        }
 
-            _rigidbody.linearVelocity = direction.normalized * Mathf.Max(0f, speed);
-            _rigidbody.angularVelocity = Vector3.zero;
+        private bool TryHit(Vector3 origin, float distance, out RaycastHit hit)
+        {
+            bool hasHit = _hitRadius > 0f
+                ? Physics.SphereCast(origin, _hitRadius, _direction, out hit, distance, _hitLayers, QueryTriggerInteraction.Ignore)
+                : Physics.Raycast(origin, _direction, out hit, distance, _hitLayers, QueryTriggerInteraction.Ignore);
+
+            if (!hasHit)
+            {
+                return false;
+            }
+
+            if (_ownerTransform != null && hit.collider != null && hit.collider.transform.IsChildOf(_ownerTransform))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private void ReturnToPool()
@@ -100,20 +123,15 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
 
             _isActive = false;
-            _rigidbody.linearVelocity = Vector3.zero;
-            _rigidbody.angularVelocity = Vector3.zero;
-
             _releaseAction?.Invoke(this);
         }
 
-        private void SpawnImpactVfx()
+        private void SpawnImpactVfx(Vector3 impactPosition)
         {
             if (_impactVfxPrefab == null)
             {
                 return;
             }
-
-            Vector3 impactPosition = transform.position;
 
             if (_pooledVfxService != null)
             {
@@ -144,11 +162,6 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
 
             Instantiate(impactVfxPrefab, position, Quaternion.identity);
-        }
-
-        private static bool IsInLayerMask(int layer, LayerMask layerMask)
-        {
-            return ((1 << layer) & layerMask.value) != 0;
         }
     }
 }
