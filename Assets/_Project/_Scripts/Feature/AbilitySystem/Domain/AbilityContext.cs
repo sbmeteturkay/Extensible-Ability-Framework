@@ -12,6 +12,7 @@ namespace CaseStudy.Feature.AbilitySystem.Domain
         public AbilityContext(
             Transform ownerTransform,
             Rigidbody ownerRigidbody,
+            AudioSource ownerAudioSource,
             ICooldownService cooldownService,
             IEnergyService energyService,
             ILocomotionLockService locomotionLockService,
@@ -20,6 +21,7 @@ namespace CaseStudy.Feature.AbilitySystem.Domain
         {
             OwnerTransform = ownerTransform ?? throw new ArgumentNullException(nameof(ownerTransform));
             OwnerRigidbody = ownerRigidbody ?? throw new ArgumentNullException(nameof(ownerRigidbody));
+            OwnerAudioSource = ownerAudioSource;
             CooldownService = cooldownService ?? throw new ArgumentNullException(nameof(cooldownService));
             EnergyService = energyService ?? throw new ArgumentNullException(nameof(energyService));
             LocomotionLockService = locomotionLockService;
@@ -30,6 +32,8 @@ namespace CaseStudy.Feature.AbilitySystem.Domain
         public Transform OwnerTransform { get; }
 
         public Rigidbody OwnerRigidbody { get; }
+
+        public AudioSource OwnerAudioSource { get; }
 
         public ICooldownService CooldownService { get; }
 

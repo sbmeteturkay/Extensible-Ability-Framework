@@ -9,6 +9,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         [SerializeField] private GameObject _impactVfxPrefab;
         [SerializeField, Min(0f)] private float _impactVfxDelaySeconds;
         [SerializeField, Min(0f)] private float _impactVfxAutoReturnSeconds = 2f;
+        [SerializeField] private int _maxPoolSize = -1;
         [SerializeField, Min(0f)] private float _projectileSpeed = 16f;
         [SerializeField, Min(0.1f)] private float _maxLifeTimeSeconds = 3f;
         [SerializeField, Min(0f)] private float _hitRadius = 0.1f;
@@ -30,6 +31,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         public float ImpactVfxDelaySeconds => _impactVfxDelaySeconds;
 
         public float ImpactVfxAutoReturnSeconds => _impactVfxAutoReturnSeconds;
+
+        public int MaxPoolSize => _maxPoolSize;
 
         public float ProjectileSpeed => _projectileSpeed;
 

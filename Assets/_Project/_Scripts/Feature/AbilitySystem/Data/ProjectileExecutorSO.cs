@@ -11,7 +11,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
     [CreateAssetMenu(fileName = "SO_Executor_Projectile", menuName = "Ability/Executors/Projectile Executor")]
     public sealed class ProjectileExecutorSO : AbilityExecutorSO
     {
-        private readonly Dictionary<int, ProjectilePool> _poolByPrefabKey = new();
+        private readonly Dictionary<(int PrefabKey, int MaxPoolSize), ProjectilePool> _poolByKey = new();
 
         public override bool CanExecute(AbilityContext context, AbilityDataSO data)
         {
@@ -28,7 +28,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 throw new InvalidOperationException("ProjectileExecutorSO is not properly configured.");
             }
 
-            ProjectilePool pool = GetOrCreatePool(parameters.ProjectilePrefabRuntime);
+            ProjectilePool pool = GetOrCreatePool(parameters.ProjectilePrefabRuntime, parameters.MaxPoolSize);
             ProjectileRuntime projectile = pool.Get();
 
             Vector3 ownerForward = context.OwnerTransform.forward;
@@ -77,7 +77,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
             if (!IsValid(parameters))
             {
-                validationError = "Projectile speed, max lifetime and aim distance must be greater than 0.";
+                validationError = "Projectile speed, max lifetime and aim distance must be greater than 0. MaxPoolSize must be -1 or > 0.";
                 return false;
             }
 
@@ -101,6 +101,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                     module.ImpactVfxPrefab,
                     module.ImpactVfxDelaySeconds,
                     module.ImpactVfxAutoReturnSeconds,
+                    module.MaxPoolSize,
                     module.ProjectileSpeed,
                     module.MaxLifeTimeSeconds,
                     module.HitRadius,
@@ -165,22 +166,25 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
         private static bool IsValid(ProjectileParameters parameters)
         {
+            bool hasValidPoolSize = parameters.MaxPoolSize == -1 || parameters.MaxPoolSize > 0;
+
             return parameters.ProjectilePrefabRuntime != null
+                   && hasValidPoolSize
                    && parameters.ProjectileSpeed > 0f
                    && parameters.MaxLifeTimeSeconds > 0f
                    && parameters.AimMaxDistance > 0f;
         }
 
-        private ProjectilePool GetOrCreatePool(ProjectileRuntime projectilePrefab)
+        private ProjectilePool GetOrCreatePool(ProjectileRuntime projectilePrefab, int maxPoolSize)
         {
-            int prefabKey = projectilePrefab.GetInstanceID();
-            if (_poolByPrefabKey.TryGetValue(prefabKey, out ProjectilePool pool))
+            var key = (projectilePrefab.GetInstanceID(), maxPoolSize);
+            if (_poolByKey.TryGetValue(key, out ProjectilePool pool))
             {
                 return pool;
             }
 
-            pool = new ProjectilePool(projectilePrefab);
-            _poolByPrefabKey[prefabKey] = pool;
+            pool = new ProjectilePool(projectilePrefab, maxPoolSize);
+            _poolByKey[key] = pool;
             return pool;
         }
 
@@ -191,6 +195,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 GameObject impactVfxPrefab,
                 float impactVfxDelaySeconds,
                 float impactVfxAutoReturnSeconds,
+                int maxPoolSize,
                 float projectileSpeed,
                 float maxLifeTimeSeconds,
                 float hitRadius,
@@ -205,6 +210,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 ImpactVfxPrefab = impactVfxPrefab;
                 ImpactVfxDelaySeconds = impactVfxDelaySeconds;
                 ImpactVfxAutoReturnSeconds = impactVfxAutoReturnSeconds;
+                MaxPoolSize = maxPoolSize;
                 ProjectileSpeed = projectileSpeed;
                 MaxLifeTimeSeconds = maxLifeTimeSeconds;
                 HitRadius = hitRadius;
@@ -223,6 +229,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             public float ImpactVfxDelaySeconds { get; }
 
             public float ImpactVfxAutoReturnSeconds { get; }
+
+            public int MaxPoolSize { get; }
 
             public float ProjectileSpeed { get; }
 

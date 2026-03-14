@@ -234,7 +234,9 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     lockStartedAt = Time.time;
                 }
                 
-                _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey,_configuredAbilities.IndexOf(ability)));
+                PlayCastFeedback(data);
+
+                _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey,_configuredAbilities.IndexOf(ability))); 
 
                 await ability.ExecuteAsync(CancellationToken.None);
 
@@ -369,6 +371,41 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 string.IsNullOrWhiteSpace(message) ? "No failure message." : message));
         }
 
+        private void PlayCastFeedback(AbilityDataSO data)
+        {
+            if (data == null || _context == null || _context.OwnerTransform == null)
+            {
+                return;
+            }
+
+            Vector3 origin = _context.OwnerTransform.position;
+
+            if (data.CastVfxPrefab != null)
+            {
+                if (_context.PooledVfxService != null)
+                {
+                    _context.PooledVfxService.Spawn(data.CastVfxPrefab, origin, Quaternion.identity);
+                }
+                else
+                {
+                    Debug.LogWarning("AbilityController: IPooledVfxService is missing. Skipping cast VFX spawn.");
+                }
+            }
+
+            if (data.CastSfx == null)
+            {
+                return;
+            }
+
+            if (_context.OwnerAudioSource != null)
+            {
+                _context.OwnerAudioSource.PlayOneShot(data.CastSfx);
+                return;
+            }
+
+            AudioSource.PlayClipAtPoint(data.CastSfx, origin);
+        }
+
         private static async UniTask HoldMinimumLockAsync(float configuredMinimumSeconds, float lockStartedAt)
         {
             if (configuredMinimumSeconds <= 0f)
@@ -462,4 +499,5 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         }
     }
 }
+
 

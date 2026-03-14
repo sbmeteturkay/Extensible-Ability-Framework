@@ -20,6 +20,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         [Header("References")]
         [SerializeField] private Transform _ownerTransform;
         [SerializeField] private Rigidbody _ownerRigidbody;
+        [SerializeField] private AudioSource _ownerAudioSource;
         [SerializeField] private AbilityLoadoutSO _loadout;
         [SerializeField] private AbilityTargetingProfileSO _targetingProfile;
 
@@ -62,6 +63,11 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             if (_ownerRigidbody == null)
             {
                 _ownerRigidbody = GetComponent<Rigidbody>();
+            }
+
+            if (_ownerAudioSource == null)
+            {
+                _ownerAudioSource = GetComponent<AudioSource>();
             }
         }
 
@@ -129,6 +135,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             var context = new Domain.AbilityContext(
                 _ownerTransform,
                 _ownerRigidbody,
+                _ownerAudioSource,
                 _cooldownService,
                 _energyService,
                 _locomotionLockService,
@@ -167,4 +174,3 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         }
     }
 }
-

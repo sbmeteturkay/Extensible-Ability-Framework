@@ -9,10 +9,12 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         private readonly ProjectileRuntime _projectilePrefab;
         private readonly Stack<ProjectileRuntime> _inactiveProjectiles = new();
         private readonly Transform _poolRoot;
+        private readonly int _maxPoolSize;
 
-        public ProjectilePool(ProjectileRuntime projectilePrefab)
+        public ProjectilePool(ProjectileRuntime projectilePrefab, int maxPoolSize)
         {
             _projectilePrefab = projectilePrefab;
+            _maxPoolSize = maxPoolSize;
 
             GameObject rootObject = new GameObject($"ProjectilePool_{projectilePrefab.name}");
             _poolRoot = rootObject.transform;
@@ -40,6 +42,12 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         {
             if (projectile == null)
             {
+                return;
+            }
+
+            if (_maxPoolSize >= 0 && _inactiveProjectiles.Count >= _maxPoolSize)
+            {
+                Object.Destroy(projectile.gameObject);
                 return;
             }
 
