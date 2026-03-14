@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using CaseStudy.Feature.AbilitySystem.Abilities;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Data;
 using CaseStudy.Shared.AbilitySystem.Events;
 using CaseStudy.Shared.Locomotion.Interfaces;
+using CaseStudy.Shared.Vfx.Interfaces;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
@@ -30,6 +30,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         private IEnergyService _energyService;
         private IPublisher<AbilityLoadoutSlotAssignedEvent> _slotAssignedPublisher;
         private ILocomotionLockService _locomotionLockService;
+        private IPooledVfxService _pooledVfxService;
 
         [Inject]
         public void Construct(
@@ -47,6 +48,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             if (resolver != null)
             {
                 resolver.TryResolve<ILocomotionLockService>(out _locomotionLockService);
+                resolver.TryResolve<IPooledVfxService>(out _pooledVfxService);
             }
         }
 
@@ -130,6 +132,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                 _cooldownService,
                 _energyService,
                 _locomotionLockService,
+                _pooledVfxService,
                 _targetingProfile);
 
             _abilityController.Configure(mapping, context);
@@ -154,60 +157,10 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(data.AbilityKey))
+            if (!data.TryValidateConfiguration(out string validationError))
             {
-                Debug.LogWarning($"AbilityRuntimeBootstrap: {slotKey} uses {data.name} with empty AbilityKey.");
+                Debug.LogWarning($"AbilityRuntimeBootstrap: {slotKey} -> {data.name} is invalid. {validationError}");
                 return null;
-            }
-
-            if (data.CooldownSeconds < 0f || data.EnergyCost < 0f)
-            {
-                Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} has negative cooldown/energy values.");
-                return null;
-            }
-
-            if (data is ProjectileAbilityDataSO projectileData)
-            {
-                if (projectileData.ProjectilePrefab == null)
-                {
-                    Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} projectile prefab is missing.");
-                    return null;
-                }
-
-                if (projectileData.ProjectilePrefab.GetComponent<ProjectileRuntime>() == null)
-                {
-                    Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} projectile prefab must include ProjectileRuntime.");
-                    return null;
-                }
-                if (data.TargetGroups == AbilityTargetGroups.None)
-                {
-                    Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} has no target groups selected.");
-                    return null;
-                }
-            }
-
-            if (data is AoeAbilityDataSO aoeData)
-            {
-                if (aoeData.Radius <= 0f || aoeData.MaxTargets <= 0)
-                {
-                    Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} has invalid AOE radius/maxTargets.");
-                    return null;
-                }
-
-                if (data.TargetGroups == AbilityTargetGroups.None)
-                {
-                    Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} has no target groups selected.");
-                    return null;
-                }
-            }
-
-            if (data is DashAbilityDataSO dashData)
-            {
-                if (dashData.DashDistance <= 0f || dashData.DashDurationSeconds <= 0f)
-                {
-                    Debug.LogWarning($"AbilityRuntimeBootstrap: {data.name} has invalid dash distance/duration.");
-                    return null;
-                }
             }
 
             return data;
@@ -219,4 +172,3 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         }
     }
 }
-
