@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +28,12 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
         private SerializedProperty _optionalModulesProperty;
 
         private readonly Dictionary<int, UnityEditor.Editor> _inlineEditors = new();
+        private readonly Dictionary<int, bool> _moduleFoldouts = new();
+
+        private bool _showCommon = true;
+        private bool _showExecution = true;
+        private bool _showOptionalModules = true;
+        private bool _showValidation = true;
 
         private void OnEnable()
         {
@@ -52,20 +58,70 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
         {
             serializedObject.Update();
 
-            DrawCommonSection();
-            EditorGUILayout.Space(8f);
+            _showCommon = EditorGUILayout.Foldout(_showCommon, "Common", true);
+            if (_showCommon)
+            {
+                DrawCommonSection();
+                EditorGUILayout.Space(8f);
+            }
 
-            DrawExecutionSection();
-            EditorGUILayout.Space(8f);
+            _showExecution = EditorGUILayout.Foldout(_showExecution, "Execution", true);
+            if (_showExecution)
+            {
+                DrawExecutionSection();
+                EditorGUILayout.Space(8f);
+            }
 
-            DrawOptionalModulesSection();
+            _showOptionalModules = EditorGUILayout.Foldout(_showOptionalModules, "Optional Modules", true);
+            if (_showOptionalModules)
+            {
+                DrawOptionalModulesSection();
+                EditorGUILayout.Space(8f);
+            }
+
+            _showValidation = EditorGUILayout.Foldout(_showValidation, "Validation", true);
+            if (_showValidation)
+            {
+                DrawValidationSection();
+            }
 
             serializedObject.ApplyModifiedProperties();
         }
 
+        private void DrawValidationSection()
+        {
+            AbilityDataSO abilityData = target as AbilityDataSO;
+            if (abilityData == null)
+            {
+                return;
+            }
+
+            bool isValid = abilityData.TryValidateConfiguration(out string validationError);
+            if (isValid)
+            {
+                EditorGUILayout.HelpBox("Configuration valid.", MessageType.Info);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(validationError, MessageType.Error);
+            }
+
+            if (GUILayout.Button("Validate Now"))
+            {
+                if (abilityData.TryValidateConfiguration(out string buttonValidationError))
+                {
+                    Debug.Log($"AbilityDataSO '{abilityData.name}' validation passed.", abilityData);
+                }
+                else
+                {
+                    Debug.LogWarning($"AbilityDataSO '{abilityData.name}' validation failed: {buttonValidationError}", abilityData);
+                }
+            }
+        }
+
         private void DrawCommonSection()
         {
-            EditorGUILayout.LabelField("Common", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("Ability key asset GUID'den otomatik gelir. Yeni icerik varyanti icin bu asseti kopyalayip duzenlemek yeterlidir.", MessageType.Info);
             EditorGUILayout.PropertyField(_displayNameProperty);
             EditorGUILayout.PropertyField(_iconProperty);
             EditorGUILayout.PropertyField(_cooldownSecondsProperty);
@@ -73,11 +129,19 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
             EditorGUILayout.PropertyField(_targetGroupsProperty);
             EditorGUILayout.PropertyField(_movementPolicyProperty);
             EditorGUILayout.PropertyField(_minimumMovementLockDurationSecondsProperty);
+
+            AbilityDataSO abilityData = target as AbilityDataSO;
+            if (abilityData != null)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUILayout.TextField("Ability Key", abilityData.AbilityKey);
+                }
+            }
         }
 
         private void DrawExecutionSection()
         {
-            EditorGUILayout.LabelField("Execution", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_executorProperty);
 
             AbilityExecutorSO executor = _executorProperty.objectReferenceValue as AbilityExecutorSO;
@@ -128,7 +192,6 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
 
         private void DrawOptionalModulesSection()
         {
-            EditorGUILayout.LabelField("Optional Modules", EditorStyles.boldLabel);
             DrawSubAssetList(
                 _optionalModulesProperty,
                 typeof(AbilityOptionalModuleSO),
@@ -159,7 +222,10 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         string entryLabel = entry != null ? entry.GetType().Name : $"Element {i}";
-                        EditorGUILayout.LabelField(entryLabel, EditorStyles.boldLabel);
+                        int foldoutKey = BuildModuleFoldoutKey(entry, i);
+                        bool expanded = GetModuleFoldoutState(foldoutKey);
+                        bool newExpanded = EditorGUILayout.Foldout(expanded, entryLabel, true);
+                        SetModuleFoldoutState(foldoutKey, newExpanded);
 
                         if (GUILayout.Button(REMOVE_LABEL, GUILayout.Width(72f)))
                         {
@@ -168,8 +234,12 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
                         }
                     }
 
-                    EditorGUILayout.PropertyField(element, GUIContent.none);
-                    DrawInlineEditor(entry);
+                    int currentFoldoutKey = BuildModuleFoldoutKey(entry, i);
+                    if (GetModuleFoldoutState(currentFoldoutKey))
+                    {
+                        EditorGUILayout.PropertyField(element, GUIContent.none);
+                        DrawInlineEditor(entry);
+                    }
                 }
             }
 
@@ -488,6 +558,27 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
             return types;
         }
 
+        private static int BuildModuleFoldoutKey(ScriptableObject entry, int index)
+        {
+            return entry != null ? entry.GetInstanceID() : -(index + 1);
+        }
+
+        private bool GetModuleFoldoutState(int key)
+        {
+            if (_moduleFoldouts.TryGetValue(key, out bool expanded))
+            {
+                return expanded;
+            }
+
+            _moduleFoldouts[key] = true;
+            return true;
+        }
+
+        private void SetModuleFoldoutState(int key, bool expanded)
+        {
+            _moduleFoldouts[key] = expanded;
+        }
+
         private void MarkAbilityDirty()
         {
             AbilityDataSO abilityData = target as AbilityDataSO;
@@ -511,6 +602,7 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
             }
 
             _inlineEditors.Clear();
+            _moduleFoldouts.Clear();
         }
     }
 }
