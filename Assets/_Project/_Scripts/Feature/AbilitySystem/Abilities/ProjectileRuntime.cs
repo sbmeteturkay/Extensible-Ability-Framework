@@ -28,6 +28,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         private AudioClip _impactSfx;
         private float _impactSfxVolume;
         private IPooledVfxService _pooledVfxService;
+        private AudioSource _ownerAudioSource;
         private Action<ProjectileRuntime> _releaseAction;
 
         private void OnEnable()
@@ -84,6 +85,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             AudioClip impactSfx,
             float impactSfxVolume,
             IPooledVfxService pooledVfxService,
+            AudioSource ownerAudioSource,
             Action<ProjectileRuntime> releaseAction)
         {
             Vector3 launchDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
@@ -103,6 +105,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             _impactSfx = impactSfx;
             _impactSfxVolume = Mathf.Clamp01(impactSfxVolume);
             _pooledVfxService = pooledVfxService;
+            _ownerAudioSource = ownerAudioSource;
             _releaseAction = releaseAction;
             _isActive = true;
             _elapsedSeconds = 0f;
@@ -203,6 +206,12 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         {
             if (_impactSfx == null)
             {
+                return;
+            }
+
+            if (_ownerAudioSource != null)
+            {
+                _ownerAudioSource.PlayOneShot(_impactSfx, _impactSfxVolume);
                 return;
             }
 

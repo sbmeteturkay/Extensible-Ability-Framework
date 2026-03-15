@@ -105,7 +105,6 @@ namespace CaseStudy.Shared.Vfx.Services
 
             Transform instanceTransform = instance.transform;
             instanceTransform.SetPositionAndRotation(position, rotation);
-            instance.SetActive(true);
 
             int instanceId = instance.GetInstanceID();
             int spawnVersion = 1;
@@ -257,61 +256,33 @@ namespace CaseStudy.Shared.Vfx.Services
 
         private sealed class VfxPool
         {
-            private readonly GameObject _prefab;
-            private readonly Queue<GameObject> _inactive = new();
-            private readonly Transform _poolRoot;
+            private readonly GameObjectPool _pool;
 
             public VfxPool(GameObject prefab, Transform parentRoot)
             {
-                _prefab = prefab;
-
-                GameObject poolRootObject = new GameObject($"VfxPool_{prefab.name}");
-                _poolRoot = poolRootObject.transform;
-                _poolRoot.SetParent(parentRoot, false);
+                _pool = new GameObjectPool(
+                    prefab,
+                    $"VfxPool_{prefab.name}",
+                    parentRoot,
+                    -1);
             }
 
             public GameObject GetOrCreate()
             {
-                while (_inactive.Count > 0)
-                {
-                    GameObject pooled = _inactive.Dequeue();
-                    if (pooled != null)
-                    {
-                        return pooled;
-                    }
-                }
-
-                return UnityEngine.Object.Instantiate(_prefab, _poolRoot);
+                return _pool.GetOrCreate();
             }
 
             public void Release(GameObject instance)
             {
-                if (instance == null)
-                {
-                    return;
-                }
-
-                instance.transform.SetParent(_poolRoot, false);
-                instance.SetActive(false);
-                _inactive.Enqueue(instance);
+                _pool.Release(instance);
             }
 
             public void Dispose()
             {
-                while (_inactive.Count > 0)
-                {
-                    GameObject pooled = _inactive.Dequeue();
-                    if (pooled != null)
-                    {
-                        UnityEngine.Object.Destroy(pooled);
-                    }
-                }
-
-                if (_poolRoot != null)
-                {
-                    UnityEngine.Object.Destroy(_poolRoot.gameObject);
-                }
+                _pool.Dispose();
             }
         }
     }
 }
+
+

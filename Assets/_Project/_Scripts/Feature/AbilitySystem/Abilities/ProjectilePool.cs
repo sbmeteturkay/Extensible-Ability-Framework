@@ -1,41 +1,25 @@
-using System.Collections.Generic;
 using CaseStudy.Shared.Pooling;
-using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Abilities
 {
     public sealed class ProjectilePool
     {
-        private readonly ProjectileRuntime _projectilePrefab;
-        private readonly Stack<ProjectileRuntime> _inactiveProjectiles = new();
-        private readonly Transform _poolRoot;
-        private readonly int _maxPoolSize;
+        private readonly ComponentPool<ProjectileRuntime> _pool;
+
+        public bool IsValid => _pool != null && _pool.IsValid;
 
         public ProjectilePool(ProjectileRuntime projectilePrefab, int maxPoolSize)
         {
-            _projectilePrefab = projectilePrefab;
-            _maxPoolSize = maxPoolSize;
-
-            GameObject rootObject = new GameObject($"ProjectilePool_{projectilePrefab.name}");
-            _poolRoot = rootObject.transform;
-            _poolRoot.SetParent(PoolRootRegistry.GetAbilityPoolsRoot(), false);
+            _pool = new ComponentPool<ProjectileRuntime>(
+                projectilePrefab,
+                $"ProjectilePool_{projectilePrefab.name}",
+                PoolRootRegistry.GetAbilityPoolsRoot(),
+                maxPoolSize);
         }
 
         public ProjectileRuntime Get()
         {
-            while (_inactiveProjectiles.Count > 0)
-            {
-                ProjectileRuntime pooledProjectile = _inactiveProjectiles.Pop();
-                if (pooledProjectile != null)
-                {
-                    pooledProjectile.gameObject.SetActive(true);
-                    return pooledProjectile;
-                }
-            }
-
-            ProjectileRuntime createdProjectile = Object.Instantiate(_projectilePrefab, _poolRoot);
-            createdProjectile.gameObject.SetActive(true);
-            return createdProjectile;
+            return _pool.GetOrCreate();
         }
 
         public void Release(ProjectileRuntime projectile)
@@ -45,15 +29,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
                 return;
             }
 
-            if (_maxPoolSize >= 0 && _inactiveProjectiles.Count >= _maxPoolSize)
-            {
-                Object.Destroy(projectile.gameObject);
-                return;
-            }
-
-            projectile.transform.SetParent(_poolRoot, false);
-            projectile.gameObject.SetActive(false);
-            _inactiveProjectiles.Push(projectile);
+            _pool.Release(projectile);
         }
     }
 }

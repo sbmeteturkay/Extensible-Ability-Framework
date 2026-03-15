@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Abilities;
@@ -12,7 +12,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
     public sealed class ProjectileExecutorSO : AbilityExecutorSO, ITargetHitVisualConsumer
     {
         public override Type RequiredMechanicConfigType => typeof(ProjectileMechanicConfigSO);
-        private readonly Dictionary<(int PrefabKey, int MaxPoolSize), ProjectilePool> _poolByKey = new();
+        private static readonly Dictionary<(int PrefabKey, int MaxPoolSize), ProjectilePool> PoolByKey = new();
 
         public override bool CanExecute(AbilityContext context, AbilityDataSO data)
         {
@@ -31,6 +31,11 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
             ProjectilePool pool = GetOrCreatePool(parameters.ProjectilePrefabRuntime, parameters.MaxPoolSize);
             ProjectileRuntime projectile = pool.Get();
+            if (projectile == null)
+            {
+                Debug.LogWarning("ProjectileExecutorSO: failed to get projectile instance from pool.");
+                return UniTask.CompletedTask;
+            }
 
             Vector3 ownerForward = context.OwnerTransform.forward;
             if (ownerForward.sqrMagnitude <= 0.0001f)
@@ -59,6 +64,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 parameters.ImpactSfx,
                 parameters.ImpactSfxVolume,
                 context.PooledVfxService,
+                context.OwnerAudioSource,
                 pool.Release);
 
             return UniTask.CompletedTask;
@@ -230,13 +236,18 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         private ProjectilePool GetOrCreatePool(ProjectileRuntime projectilePrefab, int maxPoolSize)
         {
             var key = (projectilePrefab.GetInstanceID(), maxPoolSize);
-            if (_poolByKey.TryGetValue(key, out ProjectilePool pool))
+            if (PoolByKey.TryGetValue(key, out ProjectilePool pool))
             {
-                return pool;
+                if (pool != null && pool.IsValid)
+                {
+                    return pool;
+                }
+
+                PoolByKey.Remove(key);
             }
 
             pool = new ProjectilePool(projectilePrefab, maxPoolSize);
-            _poolByKey[key] = pool;
+            PoolByKey[key] = pool;
             return pool;
         }
 
@@ -297,4 +308,6 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
+
+
 
