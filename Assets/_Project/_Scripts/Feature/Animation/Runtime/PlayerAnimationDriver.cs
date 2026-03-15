@@ -10,10 +10,12 @@ namespace CaseStudy.Feature.Animation.Runtime
     /// <summary>
     /// Single-component animation driver.
     /// Computes movement in FixedUpdate, writes animator params in Update,
-    /// and optionally reacts to ability trigger events.
+    /// and reacts to ability/loadout events.
     /// </summary>
     public sealed class PlayerAnimationDriver : MonoBehaviour
     {
+        private const int DEFAULT_ABILITY_SLOT_COUNT = 8;
+        private const float DEFAULT_ABILITY_SPEED = 1f;
         private const float MIN_REFERENCE_SPEED = 0.0001f;
         private const float MIN_FIXED_DELTA = 0.0001f;
         private const float START_MOVING_MULTIPLIER = 1.15f;
@@ -24,9 +26,16 @@ namespace CaseStudy.Feature.Animation.Runtime
         [SerializeField] private Rigidbody _ownerRigidbody;
         [SerializeField] private Animator _ownerAnimator;
         [SerializeField] private PlayerAnimationConfigSO _config;
-
+        
         private ISubscriber<AbilityTriggeredEvent> _abilityTriggeredSubscriber;
+        private ISubscriber<AbilityLoadoutSlotAssignedEvent> _loadoutSlotAssignedSubscriber;
         private IDisposable _abilityTriggeredSubscription;
+        private IDisposable _loadoutSlotAssignedSubscription;
+
+        private AnimatorOverrideController _runtimeOverrideController;
+        private bool _didLogMissingOverrideController;
+
+        private readonly float[] _abilitySpeedBySlot = new float[DEFAULT_ABILITY_SLOT_COUNT];
 
         private Vector3 _lastFixedWorldPosition;
         private bool _hasLastFixedWorldPosition;
@@ -43,6 +52,7 @@ namespace CaseStudy.Feature.Animation.Runtime
         private int _isMovingHash;
         private int _abilityUsedTriggerHash;
         private int _abilityIndexHash;
+        private int _abilityAnimationSpeedHash;
 
         private bool _hasMoveX;
         private bool _hasMoveY;
@@ -50,10 +60,12 @@ namespace CaseStudy.Feature.Animation.Runtime
         private bool _hasIsMoving;
         private bool _hasAbilityUsedTrigger;
         private bool _hasAbilityIndex;
+        private bool _hasAbilityAnimationSpeed;
 
         private bool _pendingAbilityUsedTrigger;
         private int _pendingAbilityIndex;
         private bool _hasPendingAbilityIndex;
+        private float _pendingAbilityAnimationSpeed = DEFAULT_ABILITY_SPEED;
 
         private float _lastSentMoveX;
         private float _lastSentMoveY;
@@ -67,10 +79,13 @@ namespace CaseStudy.Feature.Animation.Runtime
         [Inject]
         public void Construct(IObjectResolver resolver)
         {
-            if (resolver != null)
+            if (resolver == null)
             {
-                resolver.TryResolve<ISubscriber<AbilityTriggeredEvent>>(out _abilityTriggeredSubscriber);
+                return;
             }
+
+            resolver.TryResolve<ISubscriber<AbilityTriggeredEvent>>(out _abilityTriggeredSubscriber);
+            resolver.TryResolve<ISubscriber<AbilityLoadoutSlotAssignedEvent>>(out _loadoutSlotAssignedSubscriber);
         }
 
         private void Awake()
@@ -91,6 +106,7 @@ namespace CaseStudy.Feature.Animation.Runtime
             }
 
             CacheAnimatorParameterHashes();
+            InitializeAbilitySpeeds();
 
             if (_ownerTransform != null)
             {
@@ -99,6 +115,7 @@ namespace CaseStudy.Feature.Animation.Runtime
             }
 
             _lastAboveThresholdTime = -999f;
+            EnsureRuntimeOverrideController();
         }
 
         private void OnEnable()
@@ -110,6 +127,9 @@ namespace CaseStudy.Feature.Animation.Runtime
         {
             _abilityTriggeredSubscription?.Dispose();
             _abilityTriggeredSubscription = null;
+
+            _loadoutSlotAssignedSubscription?.Dispose();
+            _loadoutSlotAssignedSubscription = null;
         }
 
         private void FixedUpdate()
@@ -165,12 +185,18 @@ namespace CaseStudy.Feature.Animation.Runtime
             _abilityTriggeredSubscription?.Dispose();
             _abilityTriggeredSubscription = null;
 
-            if (_abilityTriggeredSubscriber == null)
+            _loadoutSlotAssignedSubscription?.Dispose();
+            _loadoutSlotAssignedSubscription = null;
+
+            if (_abilityTriggeredSubscriber != null)
             {
-                return;
+                _abilityTriggeredSubscription = _abilityTriggeredSubscriber.Subscribe(OnAbilityTriggered);
             }
 
-            _abilityTriggeredSubscription = _abilityTriggeredSubscriber.Subscribe(OnAbilityTriggered);
+            if (_loadoutSlotAssignedSubscriber != null)
+            {
+                _loadoutSlotAssignedSubscription = _loadoutSlotAssignedSubscriber.Subscribe(OnLoadoutSlotAssigned);
+            }
         }
 
         private void OnAbilityTriggered(AbilityTriggeredEvent evt)
@@ -185,6 +211,43 @@ namespace CaseStudy.Feature.Animation.Runtime
                 _pendingAbilityIndex = evt.AbilityIndex;
                 _hasPendingAbilityIndex = true;
             }
+
+            if (_hasAbilityAnimationSpeed)
+            {
+                _pendingAbilityAnimationSpeed = ResolveAbilitySpeed(evt.AbilityIndex);
+            }
+        }
+
+        private void OnLoadoutSlotAssigned(AbilityLoadoutSlotAssignedEvent evt)
+        {
+            if (evt.SlotIndex < 0)
+            {
+                return;
+            }
+
+            if (evt.SlotIndex < _abilitySpeedBySlot.Length)
+            {
+                _abilitySpeedBySlot[evt.SlotIndex] = evt.AbilityAnimationSpeed;
+            }
+
+            if (_config == null || _config.AbilitySlotSourceClips == null || evt.SlotIndex >= _config.AbilitySlotSourceClips.Length)
+            {
+                return;
+            }
+
+            AnimationClip sourceClip = _config.AbilitySlotSourceClips[evt.SlotIndex];
+            if (sourceClip == null)
+            {
+                return;
+            }
+
+            if (!EnsureRuntimeOverrideController())
+            {
+                return;
+            }
+
+            AnimationClip targetClip = evt.AbilityAnimationClip != null ? evt.AbilityAnimationClip : sourceClip;
+            _runtimeOverrideController[sourceClip] = targetClip;
         }
 
         private void ConsumeAbilitySignals()
@@ -199,6 +262,11 @@ namespace CaseStudy.Feature.Animation.Runtime
             {
                 _ownerAnimator.SetFloat(_abilityIndexHash, _pendingAbilityIndex);
                 _hasPendingAbilityIndex = false;
+            }
+
+            if (_hasAbilityAnimationSpeed)
+            {
+                _ownerAnimator.SetFloat(_abilityAnimationSpeedHash, _pendingAbilityAnimationSpeed);
             }
         }
 
@@ -282,6 +350,34 @@ namespace CaseStudy.Feature.Animation.Runtime
                    && _config != null;
         }
 
+        private bool EnsureRuntimeOverrideController()
+        {
+            if (_ownerAnimator == null)
+            {
+                return false;
+            }
+
+            if (_runtimeOverrideController != null)
+            {
+                return true;
+            }
+
+            if (_ownerAnimator.runtimeAnimatorController is AnimatorOverrideController sourceOverrideController)
+            {
+                _runtimeOverrideController = new AnimatorOverrideController(sourceOverrideController);
+                _ownerAnimator.runtimeAnimatorController = _runtimeOverrideController;
+                return true;
+            }
+
+            if (!_didLogMissingOverrideController)
+            {
+                Debug.LogWarning("PlayerAnimationDriver: runtime controller is not AnimatorOverrideController. Ability clip binding is skipped.", this);
+                _didLogMissingOverrideController = true;
+            }
+
+            return false;
+        }
+
         private void CacheAnimatorParameterHashes()
         {
             _hasMoveX = TryBuildHash(_config != null ? _config.MoveXParam : string.Empty, out _moveXHash);
@@ -290,6 +386,26 @@ namespace CaseStudy.Feature.Animation.Runtime
             _hasIsMoving = TryBuildHash(_config != null ? _config.IsMovingParam : string.Empty, out _isMovingHash);
             _hasAbilityUsedTrigger = TryBuildHash(_config != null ? _config.AbilityUsedTriggerParam : string.Empty, out _abilityUsedTriggerHash);
             _hasAbilityIndex = TryBuildHash(_config != null ? _config.AbilityIndexIntParam : string.Empty, out _abilityIndexHash);
+            _hasAbilityAnimationSpeed = TryBuildHash(_config != null ? _config.AbilityAnimationSpeedParam : string.Empty, out _abilityAnimationSpeedHash);
+        }
+
+        private void InitializeAbilitySpeeds()
+        {
+            int count = _abilitySpeedBySlot.Length;
+            for (int i = 0; i < count; i++)
+            {
+                _abilitySpeedBySlot[i] = DEFAULT_ABILITY_SPEED;
+            }
+        }
+
+        private float ResolveAbilitySpeed(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= _abilitySpeedBySlot.Length)
+            {
+                return DEFAULT_ABILITY_SPEED;
+            }
+
+            return _abilitySpeedBySlot[slotIndex];
         }
 
         private static float SnapIfNearZero(float value)

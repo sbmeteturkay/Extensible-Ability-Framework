@@ -140,7 +140,30 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
 
             foreach (KeyValuePair<int, AbilityDataSO> pair in mapping)
             {
-                _slotAssignedPublisher.Publish(new AbilityLoadoutSlotAssignedEvent(pair.Key, pair.Value.AbilityKey, pair.Value.Icon));
+                ResolveAbilityAnimation(pair.Value, out AnimationClip abilityAnimationClip, out float abilityAnimationSpeed);
+                _slotAssignedPublisher.Publish(new AbilityLoadoutSlotAssignedEvent(
+                    pair.Key,
+                    pair.Value.AbilityKey,
+                    pair.Value.Icon,
+                    abilityAnimationClip,
+                    abilityAnimationSpeed));
+            }
+        }
+
+        private static void ResolveAbilityAnimation(AbilityDataSO abilityData, out AnimationClip abilityAnimationClip, out float abilityAnimationSpeed)
+        {
+            abilityAnimationClip = null;
+            abilityAnimationSpeed = 1f;
+
+            if (abilityData == null || !abilityData.TryGetModule(out AbilityAnimationModuleSO animationModule))
+            {
+                return;
+            }
+
+            abilityAnimationClip = animationModule.AnimationClip;
+            if (animationModule.UseCustomPlaybackSpeed)
+            {
+                abilityAnimationSpeed = Mathf.Max(0.01f, animationModule.PlaybackSpeed);
             }
         }
 

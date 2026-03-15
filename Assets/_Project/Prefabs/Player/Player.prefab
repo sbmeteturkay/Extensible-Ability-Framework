@@ -216,9 +216,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Runtime.AbilityRuntimeBootstrap
   _ownerTransform: {fileID: 7658783902470862845}
   _ownerRigidbody: {fileID: 3461777411648705500}
-  _ownerAudioSource: {fileID: 0}
+  _ownerAudioSource: {fileID: 3757994286749139414}
   _loadout: {fileID: 11400000, guid: d540605823e8c884d9bf850c0b00f763, type: 2}
-  _targetingProfile: {fileID: 0}
+  _targetingProfile: {fileID: 11400000, guid: 07ff92c2046413040a2f8871b6dc7454, type: 2}
 --- !u!114 &8661310199841381500
 MonoBehaviour:
   m_ObjectHideFlags: 0

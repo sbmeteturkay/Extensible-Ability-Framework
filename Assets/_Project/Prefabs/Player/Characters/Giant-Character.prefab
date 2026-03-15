@@ -2139,10 +2139,6 @@ PrefabInstance:
       propertyPath: _loadout
       value: 
       objectReference: {fileID: 11400000, guid: c1f8190f5a51a9f4d822bd973d6c21cb, type: 2}
-    - target: {fileID: 5569660900266239842, guid: 0824faecb1c22324c8f9b5b64da76899, type: 3}
-      propertyPath: _targetingProfile
-      value: 
-      objectReference: {fileID: 11400000, guid: 07ff92c2046413040a2f8871b6dc7454, type: 2}
     - target: {fileID: 5879802101155113866, guid: 0824faecb1c22324c8f9b5b64da76899, type: 3}
       propertyPath: m_Height
       value: 2.9453685
@@ -2206,6 +2202,10 @@ PrefabInstance:
     - target: {fileID: 7946607821763125530, guid: 0824faecb1c22324c8f9b5b64da76899, type: 3}
       propertyPath: m_Name
       value: Giant-Character
+      objectReference: {fileID: 0}
+    - target: {fileID: 7946607821763125530, guid: 0824faecb1c22324c8f9b5b64da76899, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8542846871169050385, guid: 0824faecb1c22324c8f9b5b64da76899, type: 3}
       propertyPath: m_Name

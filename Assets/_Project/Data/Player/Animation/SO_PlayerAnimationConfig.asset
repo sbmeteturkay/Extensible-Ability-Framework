@@ -24,4 +24,14 @@ MonoBehaviour:
   _moveYDampTime: 0.08
   _speedDampTime: 0.06
   _abilityUsedTriggerParam: AbilityUsed
+  _abilitySlotSourceClips:
+  - {fileID: 7400000, guid: d76e01b7f8df9474d8da26e08f8d1bc9, type: 2}
+  - {fileID: 7400000, guid: 45e23ce6e0f95404c8d0e6d19b6fc704, type: 2}
+  - {fileID: 7400000, guid: ec784ef16006cb948bca9d7dfd6ebc9d, type: 2}
+  - {fileID: 7400000, guid: f2cde1b96901c404da57f4ce8233fb2a, type: 2}
+  - {fileID: 7400000, guid: fa3a560919d91014ea387f696340d790, type: 2}
+  - {fileID: 7400000, guid: 74490b08e1e414b468874ac79b4d1050, type: 2}
+  - {fileID: 7400000, guid: f91e51516f3f0494aa3aa9cd6f4d230e, type: 2}
+  - {fileID: 7400000, guid: 67ce58e66fc83b244b59aec630e0f79a, type: 2}
   _abilityIndexIntParam: AbilityIndex
+  _abilityAnimationSpeedParam: AbilityAnimSpeed
