@@ -1,5 +1,58 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8905429607066836416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b4a19cf3826344a86f8bcfe51994b6, type: 3}
+  m_Name: AoeAbilityModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AoeAbilityModuleSO
+  _radius: 3
+  _hitDelaySeconds: 0.25
+  _effectDurationSeconds: 1
+  _maxTargets: 32
+  _aoeVfxPrefab: {fileID: 4994997792314849709, guid: 3dd50886582244645be87adb42aa8528, type: 3}
+  _aoeVfxDelaySeconds: 0
+  _aoeVfxAutoReturnSeconds: 2
+--- !u!114 &-6666087784520695298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c5dd4d7b02c4a44b2ec731aae16ab3, type: 3}
+  m_Name: AbilityCastFeedbackModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityCastFeedbackModuleSO
+  _order: 0
+  _castVfxPrefab: {fileID: 0}
+  _castSfx: {fileID: 8300000, guid: 7e26c9daf4c32483b9c2790e662d3f1b, type: 3}
+--- !u!114 &-496123898924717325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 563dc5914a0ce2742b0986c9e6a02f7a, type: 3}
+  m_Name: AbilityHitFeedbackModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityHitFeedbackModuleSO
+  _order: 0
+  _targetHitVisualProfile: {fileID: 11400000, guid: c34ed9f73a296ef4aa8601529eef104c, type: 2}
+  _impactVfxPrefab: {fileID: 0}
+  _impactVfxDelaySeconds: 0
+  _impactVfxAutoReturnSeconds: 2
+  _impactSfx: {fileID: 8300000, guid: 7bef0064f8567430cac22499c6b93d4f, type: 3}
+  _impactSfxVolume: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21,8 +74,7 @@ MonoBehaviour:
   _movementPolicy: 1
   _minimumMovementLockDurationSeconds: 0.5
   _executor: {fileID: 11400000, guid: b63f5e20cc59f29429c5d7fca4316f9c, type: 2}
-  _modules:
-  - {fileID: 11400000, guid: f81313ccb09c41938d6bedece361708b, type: 2}
-  _overrides: []
-  _castVfxPrefab: {fileID: 0}
-  _castSfx: {fileID: 8300000, guid: 7e26c9daf4c32483b9c2790e662d3f1b, type: 3}
+  _mechanicConfig: {fileID: -8905429607066836416}
+  _optionalModules:
+  - {fileID: -6666087784520695298}
+  - {fileID: -496123898924717325}

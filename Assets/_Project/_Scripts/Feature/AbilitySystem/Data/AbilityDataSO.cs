@@ -17,50 +17,47 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         [SerializeField] private AbilityTargetGroups _targetGroups = AbilityTargetGroups.HitEnemies;
         [SerializeField] private AbilityMovementPolicy _movementPolicy = AbilityMovementPolicy.None;
         [SerializeField, Min(0f)] private float _minimumMovementLockDurationSeconds;
-        [SerializeField] private AbilityExecutorSO _executor;
-        [SerializeField] private List<AbilityModuleSO> _modules = new();
-        [SerializeField] private List<AbilityOverrideSO> _overrides = new();
 
-        [Header("Feedback")]
-        [SerializeField] private GameObject _castVfxPrefab;
-        [SerializeField] private AudioClip _castSfx;
+        [Header("Execution")]
+        [SerializeField] private AbilityExecutorSO _executor;
+        [SerializeField] private AbilityMechanicConfigSO _mechanicConfig;
+
+        [Header("Optional Modules")]
+        [SerializeField] private List<AbilityOptionalModuleSO> _optionalModules = new();
 
         public string AbilityKey => _abilityKey;
-
         public string DisplayName => _displayName;
-
         public Sprite Icon => _icon;
-
         public float CooldownSeconds => _cooldownSeconds;
-
         public float EnergyCost => _energyCost;
-
         public AbilityTargetGroups TargetGroups => _targetGroups;
-
         public virtual AbilityMovementPolicy MovementPolicy => _movementPolicy;
-
         public bool ShouldLockLocomotion => MovementPolicy == AbilityMovementPolicy.LockLocomotionDuringExecution;
-
         public float MinimumMovementLockDurationSeconds => _minimumMovementLockDurationSeconds;
-
         public AbilityExecutorSO Executor => _executor;
+        public AbilityMechanicConfigSO MechanicConfig => _mechanicConfig;
+        public IReadOnlyList<AbilityOptionalModuleSO> OptionalModules => _optionalModules;
 
-        public IReadOnlyList<AbilityModuleSO> Modules => _modules;
+        public bool TryGetMechanicConfig<TConfig>(out TConfig mechanicConfig) where TConfig : AbilityMechanicConfigSO
+        {
+            if (_mechanicConfig is TConfig typedPrimary)
+            {
+                mechanicConfig = typedPrimary;
+                return true;
+            }
 
-        public IReadOnlyList<AbilityOverrideSO> Overrides => _overrides;
+            mechanicConfig = null;
+            return false;
+        }
 
-        public GameObject CastVfxPrefab => _castVfxPrefab;
-
-        public AudioClip CastSfx => _castSfx;
-
-        public bool TryGetModule<TModule>(out TModule module) where TModule : AbilityModuleSO
+        public bool TryGetModule<TModule>(out TModule module) where TModule : AbilityOptionalModuleSO
         {
             module = null;
-            int count = _modules != null ? _modules.Count : 0;
+            int count = _optionalModules != null ? _optionalModules.Count : 0;
 
             for (int i = 0; i < count; i++)
             {
-                AbilityModuleSO candidate = _modules[i];
+                AbilityOptionalModuleSO candidate = _optionalModules[i];
                 if (candidate is TModule typedModule)
                 {
                     module = typedModule;
@@ -93,12 +90,13 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 return false;
             }
 
-            if (!TryValidateModules(out validationError))
+            if (_mechanicConfig == null)
             {
+                validationError = "Mechanic config is missing. Assign MechanicConfig.";
                 return false;
             }
 
-            if (!TryValidateOverrides(out validationError))
+            if (!TryValidateOptionalModules(out validationError))
             {
                 return false;
             }
@@ -164,46 +162,27 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
         private void EnsureListsInitialized()
         {
-            _modules ??= new List<AbilityModuleSO>();
-            _overrides ??= new List<AbilityOverrideSO>();
+            _optionalModules ??= new List<AbilityOptionalModuleSO>();
         }
 
-        private bool TryValidateModules(out string validationError)
+        private bool TryValidateOptionalModules(out string validationError)
         {
             var seenModuleTypes = new HashSet<Type>();
-            int count = _modules.Count;
+            int count = _optionalModules.Count;
 
             for (int i = 0; i < count; i++)
             {
-                AbilityModuleSO module = _modules[i];
+                AbilityOptionalModuleSO module = _optionalModules[i];
                 if (module == null)
                 {
-                    validationError = $"Modules list contains an empty entry at index {i}.";
+                    validationError = $"Optional modules list contains an empty entry at index {i}.";
                     return false;
                 }
 
                 Type moduleType = module.GetType();
                 if (!seenModuleTypes.Add(moduleType))
                 {
-                    validationError = $"Duplicate module type detected: {moduleType.Name}. Keep one module per type.";
-                    return false;
-                }
-            }
-
-            validationError = string.Empty;
-            return true;
-        }
-
-        private bool TryValidateOverrides(out string validationError)
-        {
-            int count = _overrides.Count;
-
-            for (int i = 0; i < count; i++)
-            {
-                AbilityOverrideSO abilityOverride = _overrides[i];
-                if (abilityOverride == null)
-                {
-                    validationError = $"Overrides list contains an empty entry at index {i}.";
+                    validationError = $"Duplicate optional module type detected: {moduleType.Name}. Keep one module per type.";
                     return false;
                 }
             }

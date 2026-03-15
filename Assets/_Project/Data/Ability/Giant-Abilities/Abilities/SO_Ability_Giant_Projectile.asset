@@ -1,5 +1,24 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-3975271225896418359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 563dc5914a0ce2742b0986c9e6a02f7a, type: 3}
+  m_Name: AbilityHitFeedbackModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityHitFeedbackModuleSO
+  _order: 0
+  _targetHitVisualProfile: {fileID: 11400000, guid: 669551f9f889b59418f0917dcde913af, type: 2}
+  _impactVfxPrefab: {fileID: 1758473627833946668, guid: 9b21333b068a5084ba09535839bee3c8, type: 3}
+  _impactVfxDelaySeconds: 0
+  _impactVfxAutoReturnSeconds: 2
+  _impactSfx: {fileID: 8300000, guid: 7bef0064f8567430cac22499c6b93d4f, type: 3}
+  _impactSfxVolume: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17,12 +36,48 @@ MonoBehaviour:
   _icon: {fileID: 21300000, guid: 137afcd85071d254d8646988ddae32c2, type: 3}
   _cooldownSeconds: 1
   _energyCost: 30
-  _targetGroups: 4
+  _targetGroups: 5
   _movementPolicy: 0
   _minimumMovementLockDurationSeconds: 0
   _executor: {fileID: 11400000, guid: e14fbcb629aa6da46b393a02ae864f45, type: 2}
-  _modules:
-  - {fileID: 11400000, guid: 491b4d7460384e8f9d0cc788586f7d83, type: 2}
-  _overrides: []
+  _mechanicConfig: {fileID: 1378872218464300298}
+  _optionalModules:
+  - {fileID: 8160812057409128935}
+  - {fileID: -3975271225896418359}
+--- !u!114 &1378872218464300298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2b3378b588fe1b4290c8f5d2dedc4e2, type: 3}
+  m_Name: ProjectileAbilityModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.ProjectileAbilityModuleSO
+  _projectilePrefab: {fileID: 3256030433253130741, guid: 91da0bdcf08d94d4fb8d80f7dd7010af, type: 3}
+  _maxPoolSize: -1
+  _projectileSpeed: 10
+  _maxLifeTimeSeconds: 2
+  _hitRadius: 0.1
+  _spawnForwardOffset: 1
+  _spawnHorizontalOffset: 0
+  _spawnVerticalOffset: 1
+  _aimMaxDistance: 60
+  _aimRayVerticalOffset: 1
+--- !u!114 &8160812057409128935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c5dd4d7b02c4a44b2ec731aae16ab3, type: 3}
+  m_Name: AbilityCastFeedbackModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityCastFeedbackModuleSO
+  _order: 0
   _castVfxPrefab: {fileID: 0}
   _castSfx: {fileID: 8300000, guid: d46323e22e74e46baa241cbf48c85671, type: 3}

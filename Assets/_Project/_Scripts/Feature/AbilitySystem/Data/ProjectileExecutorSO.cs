@@ -11,6 +11,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
     [CreateAssetMenu(fileName = "SO_Executor_Projectile", menuName = "Ability/Executors/Projectile Executor")]
     public sealed class ProjectileExecutorSO : AbilityExecutorSO
     {
+        public override Type RequiredMechanicConfigType => typeof(ProjectileMechanicConfigSO);
         private readonly Dictionary<(int PrefabKey, int MaxPoolSize), ProjectilePool> _poolByKey = new();
 
         public override bool CanExecute(AbilityContext context, AbilityDataSO data)
@@ -55,6 +56,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 parameters.ImpactVfxPrefab,
                 parameters.ImpactVfxDelaySeconds,
                 parameters.ImpactVfxAutoReturnSeconds,
+                parameters.ImpactSfx,
+                parameters.ImpactSfxVolume,
                 context.PooledVfxService,
                 pool.Release);
 
@@ -65,7 +68,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         {
             if (!TryResolveParameters(data, out ProjectileParameters parameters))
             {
-                validationError = "Projectile executor requires ProjectileAbilityModuleSO.";
+                validationError = "Projectile executor requires projectile mechanic config (ProjectileMechanicConfigSO).";
                 return false;
             }
 
@@ -93,19 +96,30 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
         private static bool TryResolveParameters(AbilityDataSO data, out ProjectileParameters parameters)
         {
-            if (data != null && data.TryGetModule(out ProjectileAbilityModuleSO module))
+            if (data != null && data.TryGetMechanicConfig(out ProjectileMechanicConfigSO module))
             {
                 ProjectileRuntime prefabRuntime = GetProjectileRuntime(module.ProjectilePrefab);
+                ResolveHitFeedbackModule(
+                    data,
+                    out HitVisualProfileSO targetHitVisualProfile,
+                    out GameObject impactVfxPrefab,
+                    out float impactVfxDelaySeconds,
+                    out float impactVfxAutoReturnSeconds,
+                    out AudioClip impactSfx,
+                    out float impactSfxVolume);
+
                 parameters = new ProjectileParameters(
                     prefabRuntime,
-                    module.ImpactVfxPrefab,
-                    module.ImpactVfxDelaySeconds,
-                    module.ImpactVfxAutoReturnSeconds,
+                    impactVfxPrefab,
+                    impactVfxDelaySeconds,
+                    impactVfxAutoReturnSeconds,
+                    impactSfx,
+                    impactSfxVolume,
                     module.MaxPoolSize,
                     module.ProjectileSpeed,
                     module.MaxLifeTimeSeconds,
                     module.HitRadius,
-                    module.TargetHitVisualProfile,
+                    targetHitVisualProfile,
                     module.SpawnForwardOffset,
                     module.SpawnHorizontalOffset,
                     module.SpawnVerticalOffset,
@@ -116,6 +130,34 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
             parameters = default;
             return false;
+        }
+
+        private static void ResolveHitFeedbackModule(
+            AbilityDataSO data,
+            out HitVisualProfileSO targetHitVisualProfile,
+            out GameObject impactVfxPrefab,
+            out float impactVfxDelaySeconds,
+            out float impactVfxAutoReturnSeconds,
+            out AudioClip impactSfx,
+            out float impactSfxVolume)
+        {
+            if (data != null && data.TryGetModule(out AbilityHitFeedbackModuleSO hitFeedbackModule))
+            {
+                targetHitVisualProfile = hitFeedbackModule.TargetHitVisualProfile;
+                impactVfxPrefab = hitFeedbackModule.ImpactVfxPrefab;
+                impactVfxDelaySeconds = hitFeedbackModule.ImpactVfxDelaySeconds;
+                impactVfxAutoReturnSeconds = hitFeedbackModule.ImpactVfxAutoReturnSeconds;
+                impactSfx = hitFeedbackModule.ImpactSfx;
+                impactSfxVolume = hitFeedbackModule.ImpactSfxVolume;
+                return;
+            }
+
+            targetHitVisualProfile = null;
+            impactVfxPrefab = null;
+            impactVfxDelaySeconds = 0f;
+            impactVfxAutoReturnSeconds = 0f;
+            impactSfx = null;
+            impactSfxVolume = 1f;
         }
 
         private static Vector3 ResolveSpawnPosition(AbilityContext context, ProjectileParameters parameters, Vector3 ownerForward)
@@ -195,6 +237,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 GameObject impactVfxPrefab,
                 float impactVfxDelaySeconds,
                 float impactVfxAutoReturnSeconds,
+                AudioClip impactSfx,
+                float impactSfxVolume,
                 int maxPoolSize,
                 float projectileSpeed,
                 float maxLifeTimeSeconds,
@@ -210,6 +254,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 ImpactVfxPrefab = impactVfxPrefab;
                 ImpactVfxDelaySeconds = impactVfxDelaySeconds;
                 ImpactVfxAutoReturnSeconds = impactVfxAutoReturnSeconds;
+                ImpactSfx = impactSfx;
+                ImpactSfxVolume = impactSfxVolume;
                 MaxPoolSize = maxPoolSize;
                 ProjectileSpeed = projectileSpeed;
                 MaxLifeTimeSeconds = maxLifeTimeSeconds;
@@ -223,31 +269,20 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             }
 
             public ProjectileRuntime ProjectilePrefabRuntime { get; }
-
             public GameObject ImpactVfxPrefab { get; }
-
             public float ImpactVfxDelaySeconds { get; }
-
             public float ImpactVfxAutoReturnSeconds { get; }
-
+            public AudioClip ImpactSfx { get; }
+            public float ImpactSfxVolume { get; }
             public int MaxPoolSize { get; }
-
             public float ProjectileSpeed { get; }
-
             public float MaxLifeTimeSeconds { get; }
-
             public float HitRadius { get; }
-
             public HitVisualProfileSO TargetHitVisualProfile { get; }
-
             public float SpawnForwardOffset { get; }
-
             public float SpawnHorizontalOffset { get; }
-
             public float SpawnVerticalOffset { get; }
-
             public float AimMaxDistance { get; }
-
             public float AimRayVerticalOffset { get; }
         }
     }

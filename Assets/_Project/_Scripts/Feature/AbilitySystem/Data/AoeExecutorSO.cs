@@ -11,6 +11,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
     [CreateAssetMenu(fileName = "SO_Executor_Aoe", menuName = "Ability/Executors/AOE Executor")]
     public sealed class AoeExecutorSO : AbilityExecutorSO
     {
+        public override Type RequiredMechanicConfigType => typeof(AoeMechanicConfigSO);
         private Collider[] _overlapBuffer = Array.Empty<Collider>();
 
         public override bool CanExecute(AbilityContext context, AbilityDataSO data)
@@ -89,7 +90,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         {
             if (!TryResolveParameters(data, out AoeParameters parameters))
             {
-                validationError = "AOE executor requires AoeAbilityModuleSO.";
+                validationError = "AOE executor requires AOE mechanic config (AoeMechanicConfigSO).";
                 return false;
             }
 
@@ -111,8 +112,10 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
         private static bool TryResolveParameters(AbilityDataSO data, out AoeParameters parameters)
         {
-            if (data != null && data.TryGetModule(out AoeAbilityModuleSO module))
+            if (data != null && data.TryGetMechanicConfig(out AoeMechanicConfigSO module))
             {
+                HitVisualProfileSO targetHitVisualProfile = ResolveTargetHitVisualProfile(data);
+
                 parameters = new AoeParameters(
                     module.Radius,
                     module.HitDelaySeconds,
@@ -121,12 +124,19 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                     module.AoeVfxPrefab,
                     module.AoeVfxDelaySeconds,
                     module.AoeVfxAutoReturnSeconds,
-                    module.TargetHitVisualProfile);
+                    targetHitVisualProfile);
                 return true;
             }
 
             parameters = default;
             return false;
+        }
+
+        private static HitVisualProfileSO ResolveTargetHitVisualProfile(AbilityDataSO data)
+        {
+            return data != null && data.TryGetModule(out AbilityHitFeedbackModuleSO hitFeedbackModule)
+                ? hitFeedbackModule.TargetHitVisualProfile
+                : null;
         }
 
         private static bool IsValid(AoeParameters parameters)

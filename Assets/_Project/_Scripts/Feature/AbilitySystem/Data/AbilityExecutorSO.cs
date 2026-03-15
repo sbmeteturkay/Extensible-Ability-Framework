@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Domain;
 using Cysharp.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
     /// </summary>
     public abstract class AbilityExecutorSO : ScriptableObject
     {
+        public virtual Type RequiredMechanicConfigType => typeof(AbilityMechanicConfigSO);
+
         public virtual bool CanExecute(AbilityContext context, AbilityDataSO data)
         {
             return context != null && data != null;

@@ -25,6 +25,8 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         private GameObject _impactVfxPrefab;
         private float _impactVfxDelaySeconds;
         private float _impactVfxAutoReturnSeconds;
+        private AudioClip _impactSfx;
+        private float _impactSfxVolume;
         private IPooledVfxService _pooledVfxService;
         private Action<ProjectileRuntime> _releaseAction;
 
@@ -52,6 +54,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
                     TryApplyHitVisual(hit.collider);
                     SpawnTargetHitVfx(hit.point);
                     SpawnImpactVfx(hit.point);
+                    SpawnImpactSfx(hit.point);
                     ReturnToPool();
                     return;
                 }
@@ -78,6 +81,8 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             GameObject impactVfxPrefab,
             float impactVfxDelaySeconds,
             float impactVfxAutoReturnSeconds,
+            AudioClip impactSfx,
+            float impactSfxVolume,
             IPooledVfxService pooledVfxService,
             Action<ProjectileRuntime> releaseAction)
         {
@@ -95,6 +100,8 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             _impactVfxPrefab = impactVfxPrefab;
             _impactVfxDelaySeconds = Mathf.Max(0f, impactVfxDelaySeconds);
             _impactVfxAutoReturnSeconds = Mathf.Max(0f, impactVfxAutoReturnSeconds);
+            _impactSfx = impactSfx;
+            _impactSfxVolume = Mathf.Clamp01(impactSfxVolume);
             _pooledVfxService = pooledVfxService;
             _releaseAction = releaseAction;
             _isActive = true;
@@ -190,6 +197,16 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             }
 
             Debug.LogWarning("ProjectileRuntime: IPooledVfxService is missing. Skipping projectile impact VFX spawn.");
+        }
+
+        private void SpawnImpactSfx(Vector3 impactPosition)
+        {
+            if (_impactSfx == null)
+            {
+                return;
+            }
+
+            AudioSource.PlayClipAtPoint(_impactSfx, impactPosition, _impactSfxVolume);
         }
     }
 }

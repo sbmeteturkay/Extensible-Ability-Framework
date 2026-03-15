@@ -9,6 +9,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
     [CreateAssetMenu(fileName = "SO_Executor_Dash", menuName = "Ability/Executors/Dash Executor")]
     public sealed class DashExecutorSO : AbilityExecutorSO
     {
+        public override Type RequiredMechanicConfigType => typeof(DashMechanicConfigSO);
         public override bool CanExecute(AbilityContext context, AbilityDataSO data)
         {
             return base.CanExecute(context, data)
@@ -65,7 +66,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         {
             if (!TryResolveParameters(data, out DashParameters parameters))
             {
-                validationError = "Dash executor requires DashAbilityModuleSO.";
+                validationError = "Dash executor requires Dash mechanic config (DashMechanicConfigSO).";
                 return false;
             }
 
@@ -81,7 +82,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
         private static bool TryResolveParameters(AbilityDataSO data, out DashParameters parameters)
         {
-            if (data != null && data.TryGetModule(out DashAbilityModuleSO module))
+            if (data != null && data.TryGetMechanicConfig(out DashMechanicConfigSO module))
             {
                 parameters = new DashParameters(module.DashDistance, module.DashDurationSeconds, module.SpeedCurve);
                 return true;
@@ -113,3 +114,9 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
+
+
+
+
+
+

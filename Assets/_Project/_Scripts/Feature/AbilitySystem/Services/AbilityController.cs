@@ -29,7 +29,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
         private readonly Dictionary<int, IAbility> _abilityBySlotIndex = new();
         private readonly Dictionary<string, AbilityDataSO> _abilityDataByKey = new(StringComparer.Ordinal);
-        private readonly Dictionary<string, AbilityOverrideSO[]> _overridesByAbilityKey = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, AbilityOptionalModuleSO[]> _modulesByAbilityKey = new(StringComparer.Ordinal);
         private readonly HashSet<string> _executingAbilityKeys = new(StringComparer.Ordinal);
         private readonly List<IAbility> _configuredAbilities = new(4);
 
@@ -87,7 +87,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
             _abilityBySlotIndex.Clear();
             _abilityDataByKey.Clear();
-            _overridesByAbilityKey.Clear();
+            _modulesByAbilityKey.Clear();
             _executingAbilityKeys.Clear();
             _configuredAbilities.Clear();
 
@@ -114,7 +114,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 ability.Initialize(_context, data);
                 _abilityBySlotIndex[slotIndex] = ability;
                 _abilityDataByKey[data.AbilityKey] = data;
-                _overridesByAbilityKey[data.AbilityKey] = BuildOverrideArray(data.Overrides);
+                _modulesByAbilityKey[data.AbilityKey] = BuildOptionalModuleArray(data.OptionalModules);
                 _configuredAbilities.Add(ability);
             }
         }
@@ -153,20 +153,21 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             }
 
             AbilityExecutionOptions executionOptions = AbilityExecutionOptions.FromData(data);
-            if (!TryApplyBeforeTriggerOverrides(
+
+            if (!TryApplyBeforeTriggerModules(
                     data,
                     ref executionOptions,
-                    out AbilityFailureReason overrideFailureReason,
-                    out string overrideFailureSource,
-                    out string overrideFailureMessage))
+                    out AbilityFailureReason moduleFailureReason,
+                    out string moduleFailureSource,
+                    out string moduleFailureMessage))
             {
                 PublishFailure(
                     slotIndex,
                     abilityKey,
-                    overrideFailureReason,
-                    "BeforeTriggerOverrides",
-                    overrideFailureSource,
-                    overrideFailureMessage);
+                    moduleFailureReason,
+                    "BeforeTriggerModules",
+                    moduleFailureSource,
+                    moduleFailureMessage);
                 return false;
             }
 
@@ -181,6 +182,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     "Cooldown is still active.");
                 return false;
             }
+
             if (_executingAbilityKeys.Contains(abilityKey))
             {
                 PublishFailure(
@@ -192,6 +194,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     "Ability execution is already in progress.");
                 return false;
             }
+
             if (!ability.CanExecute())
             {
                 PublishFailure(
@@ -215,6 +218,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     "Not enough energy.");
                 return false;
             }
+
             _executingAbilityKeys.Add(abilityKey);
             ExecuteAbilityAsync(slotIndex, ability, data, executionOptions).Forget();
             return true;
@@ -245,7 +249,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                     lockStartedAt = Time.time;
                 }
 
-                PlayCastFeedback(data);
+                await InvokeBeforeExecuteModulesAsync(data, executionOptions);
 
                 _triggeredPublisher.Publish(new AbilityTriggeredEvent(ability.AbilityKey, slotIndex));
 
@@ -253,7 +257,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
                 _cooldownService.StartCooldown(ability.AbilityKey, executionOptions.CooldownSeconds);
 
-                await InvokeAfterExecuteOverridesAsync(data, executionOptions);
+                await InvokeAfterExecuteModulesAsync(data, executionOptions);
 
                 if (locomotionLockPushed)
                 {
@@ -283,7 +287,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             }
         }
 
-        private bool TryApplyBeforeTriggerOverrides(
+        private bool TryApplyBeforeTriggerModules(
             AbilityDataSO data,
             ref AbilityExecutionOptions executionOptions,
             out AbilityFailureReason failureReason,
@@ -302,29 +306,41 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 return false;
             }
 
-            if (!_overridesByAbilityKey.TryGetValue(data.AbilityKey, out AbilityOverrideSO[] overrides)
-                || overrides == null
-                || overrides.Length == 0)
+            if (!_modulesByAbilityKey.TryGetValue(data.AbilityKey, out AbilityOptionalModuleSO[] modules)
+                || modules == null
+                || modules.Length == 0)
             {
                 executionOptions.Sanitize();
                 return true;
             }
 
-            for (int i = 0; i < overrides.Length; i++)
+            for (int i = 0; i < modules.Length; i++)
             {
-                AbilityOverrideSO abilityOverride = overrides[i];
-                if (abilityOverride == null)
+                AbilityOptionalModuleSO module = modules[i];
+                if (module == null)
                 {
                     continue;
                 }
 
-                if (!abilityOverride.TryApplyBeforeTrigger(_context, data, ref executionOptions, out AbilityFailureReason overrideFailure))
+                try
                 {
-                    failureReason = overrideFailure == AbilityFailureReason.None
-                        ? AbilityFailureReason.InvalidConfiguration
-                        : overrideFailure;
-                    failureSource = abilityOverride.name;
-                    failureMessage = "Override blocked trigger in TryApplyBeforeTrigger.";
+                    if (!module.TryApplyBeforeTrigger(_context, data, ref executionOptions, out AbilityFailureReason moduleFailure, out string moduleFailureMessage))
+                    {
+                        failureReason = moduleFailure == AbilityFailureReason.None
+                            ? AbilityFailureReason.InvalidConfiguration
+                            : moduleFailure;
+                        failureSource = module.name;
+                        failureMessage = string.IsNullOrWhiteSpace(moduleFailureMessage)
+                            ? "Module blocked trigger in TryApplyBeforeTrigger."
+                            : moduleFailureMessage;
+                        return false;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    failureReason = AbilityFailureReason.InvalidConfiguration;
+                    failureSource = module.name;
+                    failureMessage = exception.Message;
                     return false;
                 }
             }
@@ -333,35 +349,68 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             return true;
         }
 
-        private async UniTask InvokeAfterExecuteOverridesAsync(AbilityDataSO data, AbilityExecutionOptions executionOptions)
+        private async UniTask InvokeBeforeExecuteModulesAsync(AbilityDataSO data, AbilityExecutionOptions executionOptions)
         {
             if (data == null)
             {
                 return;
             }
 
-            if (!_overridesByAbilityKey.TryGetValue(data.AbilityKey, out AbilityOverrideSO[] overrides)
-                || overrides == null
-                || overrides.Length == 0)
+            if (!_modulesByAbilityKey.TryGetValue(data.AbilityKey, out AbilityOptionalModuleSO[] modules)
+                || modules == null
+                || modules.Length == 0)
             {
                 return;
             }
 
-            for (int i = 0; i < overrides.Length; i++)
+            for (int i = 0; i < modules.Length; i++)
             {
-                AbilityOverrideSO abilityOverride = overrides[i];
-                if (abilityOverride == null)
+                AbilityOptionalModuleSO module = modules[i];
+                if (module == null)
                 {
                     continue;
                 }
 
                 try
                 {
-                    await abilityOverride.OnAfterExecuteAsync(_context, data, executionOptions, CancellationToken.None);
+                    await module.OnBeforeExecuteAsync(_context, data, executionOptions, CancellationToken.None);
                 }
                 catch (Exception exception)
                 {
-                    Debug.LogWarning($"AbilityController: after-execute override failed on '{abilityOverride.name}'. {exception.Message}");
+                    throw new InvalidOperationException($"Module '{module.name}' failed in OnBeforeExecuteAsync. {exception.Message}", exception);
+                }
+            }
+        }
+
+        private async UniTask InvokeAfterExecuteModulesAsync(AbilityDataSO data, AbilityExecutionOptions executionOptions)
+        {
+            if (data == null)
+            {
+                return;
+            }
+
+            if (!_modulesByAbilityKey.TryGetValue(data.AbilityKey, out AbilityOptionalModuleSO[] modules)
+                || modules == null
+                || modules.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < modules.Length; i++)
+            {
+                AbilityOptionalModuleSO module = modules[i];
+                if (module == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    await module.OnAfterExecuteAsync(_context, data, executionOptions, CancellationToken.None);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning($"AbilityController: after-execute module failed on '{module.name}'. {exception.Message}");
                 }
             }
         }
@@ -382,41 +431,6 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 stage,
                 string.IsNullOrWhiteSpace(source) ? nameof(AbilityController) : source,
                 string.IsNullOrWhiteSpace(message) ? "No failure message." : message));
-        }
-
-        private void PlayCastFeedback(AbilityDataSO data)
-        {
-            if (data == null || _context == null || _context.OwnerTransform == null)
-            {
-                return;
-            }
-
-            Vector3 origin = _context.OwnerTransform.position;
-
-            if (data.CastVfxPrefab != null)
-            {
-                if (_context.PooledVfxService != null)
-                {
-                    _context.PooledVfxService.Spawn(data.CastVfxPrefab, origin, Quaternion.identity);
-                }
-                else
-                {
-                    Debug.LogWarning("AbilityController: IPooledVfxService is missing. Skipping cast VFX spawn.");
-                }
-            }
-
-            if (data.CastSfx == null)
-            {
-                return;
-            }
-
-            if (_context.OwnerAudioSource != null)
-            {
-                _context.OwnerAudioSource.PlayOneShot(data.CastSfx);
-                return;
-            }
-
-            AudioSource.PlayClipAtPoint(data.CastSfx, origin);
         }
 
         private static async UniTask HoldMinimumLockAsync(float configuredMinimumSeconds, float lockStartedAt)
@@ -444,19 +458,19 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             await UniTask.Delay(delayMilliseconds, DelayType.DeltaTime, PlayerLoopTiming.Update, CancellationToken.None);
         }
 
-        private static AbilityOverrideSO[] BuildOverrideArray(IReadOnlyList<AbilityOverrideSO> configuredOverrides)
+        private static AbilityOptionalModuleSO[] BuildOptionalModuleArray(IReadOnlyList<AbilityOptionalModuleSO> configuredModules)
         {
-            if (configuredOverrides == null || configuredOverrides.Count == 0)
+            if (configuredModules == null || configuredModules.Count == 0)
             {
-                return Array.Empty<AbilityOverrideSO>();
+                return Array.Empty<AbilityOptionalModuleSO>();
             }
 
             int validCount = 0;
-            int sourceCount = configuredOverrides.Count;
+            int sourceCount = configuredModules.Count;
 
             for (int i = 0; i < sourceCount; i++)
             {
-                if (configuredOverrides[i] != null)
+                if (configuredModules[i] != null)
                 {
                     validCount++;
                 }
@@ -464,15 +478,15 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
             if (validCount == 0)
             {
-                return Array.Empty<AbilityOverrideSO>();
+                return Array.Empty<AbilityOptionalModuleSO>();
             }
 
-            var output = new AbilityOverrideSO[validCount];
+            var output = new AbilityOptionalModuleSO[validCount];
             int outputIndex = 0;
 
             for (int i = 0; i < sourceCount; i++)
             {
-                AbilityOverrideSO candidate = configuredOverrides[i];
+                AbilityOptionalModuleSO candidate = configuredModules[i];
                 if (candidate == null)
                 {
                     continue;
@@ -482,34 +496,33 @@ namespace CaseStudy.Feature.AbilitySystem.Services
                 outputIndex++;
             }
 
-            SortOverridesByOrder(output);
+            SortModulesByOrder(output);
             return output;
         }
 
-        private static void SortOverridesByOrder(AbilityOverrideSO[] overrides)
+        private static void SortModulesByOrder(AbilityOptionalModuleSO[] modules)
         {
-            for (int i = 1; i < overrides.Length; i++)
+            for (int i = 1; i < modules.Length; i++)
             {
-                AbilityOverrideSO current = overrides[i];
+                AbilityOptionalModuleSO current = modules[i];
                 int order = current != null ? current.Order : 0;
                 int j = i - 1;
 
                 while (j >= 0)
                 {
-                    AbilityOverrideSO previous = overrides[j];
+                    AbilityOptionalModuleSO previous = modules[j];
                     int previousOrder = previous != null ? previous.Order : 0;
                     if (previousOrder <= order)
                     {
                         break;
                     }
 
-                    overrides[j + 1] = previous;
+                    modules[j + 1] = previous;
                     j--;
                 }
 
-                overrides[j + 1] = current;
+                modules[j + 1] = current;
             }
         }
     }
 }
-
