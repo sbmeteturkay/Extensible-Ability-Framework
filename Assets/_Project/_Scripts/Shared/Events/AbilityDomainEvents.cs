@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace CaseStudy.Shared.AbilitySystem.Events
+namespace CaseStudy.Shared.AbilitySystem.Events.Domain
 {
     public readonly struct AbilityTriggerRequestedEvent
     {
@@ -21,7 +19,6 @@ namespace CaseStudy.Shared.AbilitySystem.Events
         }
 
         public string AbilityKey { get; }
-
         public int AbilityIndex { get; }
     }
 
@@ -34,7 +31,6 @@ namespace CaseStudy.Shared.AbilitySystem.Events
         }
 
         public string AbilityKey { get; }
-
         public AbilityFailureReason Reason { get; }
     }
 
@@ -57,15 +53,10 @@ namespace CaseStudy.Shared.AbilitySystem.Events
         }
 
         public int SlotIndex { get; }
-
         public string AbilityKey { get; }
-
         public AbilityFailureReason Reason { get; }
-
         public string Stage { get; }
-
         public string Source { get; }
-
         public string Message { get; }
     }
 
@@ -78,7 +69,6 @@ namespace CaseStudy.Shared.AbilitySystem.Events
         }
 
         public string AbilityKey { get; }
-
         public float DurationSeconds { get; }
     }
 
@@ -92,9 +82,7 @@ namespace CaseStudy.Shared.AbilitySystem.Events
         }
 
         public string AbilityKey { get; }
-
         public float RemainingSeconds { get; }
-
         public float NormalizedRemaining { get; }
     }
 
@@ -117,40 +105,7 @@ namespace CaseStudy.Shared.AbilitySystem.Events
         }
 
         public float CurrentEnergy { get; }
-
         public float MaxEnergy { get; }
-    }
-
-    public readonly struct AbilityLoadoutSlotAssignedEvent
-    {
-        public AbilityLoadoutSlotAssignedEvent(int slotIndex, string abilityKey, Sprite icon)
-            : this(slotIndex, abilityKey, icon, null, 1f)
-        {
-        }
-
-        public AbilityLoadoutSlotAssignedEvent(int slotIndex, string abilityKey, Sprite icon, AnimationClip abilityAnimationClip)
-            : this(slotIndex, abilityKey, icon, abilityAnimationClip, 1f)
-        {
-        }
-
-        public AbilityLoadoutSlotAssignedEvent(int slotIndex, string abilityKey, Sprite icon, AnimationClip abilityAnimationClip, float abilityAnimationSpeed)
-        {
-            SlotIndex = slotIndex;
-            AbilityKey = abilityKey;
-            Icon = icon;
-            AbilityAnimationClip = abilityAnimationClip;
-            AbilityAnimationSpeed = abilityAnimationSpeed;
-        }
-
-        public int SlotIndex { get; }
-
-        public string AbilityKey { get; }
-
-        public Sprite Icon { get; }
-
-        public AnimationClip AbilityAnimationClip { get; }
-
-        public float AbilityAnimationSpeed { get; }
     }
 
     public enum AbilityFailureReason

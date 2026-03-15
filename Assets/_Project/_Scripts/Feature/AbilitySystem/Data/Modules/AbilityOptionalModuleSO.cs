@@ -1,6 +1,6 @@
-﻿using System.Threading;
+using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Domain;
-using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -52,3 +52,5 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
+
+

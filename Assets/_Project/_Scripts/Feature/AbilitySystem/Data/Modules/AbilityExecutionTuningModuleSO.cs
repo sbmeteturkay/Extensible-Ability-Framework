@@ -1,5 +1,5 @@
 using CaseStudy.Feature.AbilitySystem.Domain;
-using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using UnityEngine;
 
 namespace CaseStudy.Feature.AbilitySystem.Data
@@ -70,3 +70,5 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
+
+

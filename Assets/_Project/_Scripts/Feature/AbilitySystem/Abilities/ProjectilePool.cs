@@ -13,7 +13,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             _pool = new ComponentPool<ProjectileRuntime>(
                 projectilePrefab,
                 $"ProjectilePool_{projectilePrefab.name}",
-                PoolRootRegistry.GetAbilityPoolsRoot(),
+                PoolRootRegistry.GetPoolsRoot(),
                 maxPoolSize);
         }
 
@@ -33,3 +33,5 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         }
     }
 }
+
+

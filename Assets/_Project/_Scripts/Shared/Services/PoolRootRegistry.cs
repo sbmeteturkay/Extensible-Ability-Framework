@@ -4,18 +4,24 @@ namespace CaseStudy.Shared.Pooling
 {
     internal static class PoolRootRegistry
     {
-        private static Transform _abilityPoolsRoot;
+        private static Transform _poolsRoot;
 
-        public static Transform GetAbilityPoolsRoot()
+        public static Transform GetPoolsRoot()
         {
-            if (_abilityPoolsRoot != null)
+            if (_poolsRoot != null)
             {
-                return _abilityPoolsRoot;
+                return _poolsRoot;
             }
 
-            GameObject rootObject = new GameObject("AbilityPools_Root");
-            _abilityPoolsRoot = rootObject.transform;
-            return _abilityPoolsRoot;
+            GameObject rootObject = new GameObject("Pools_Root");
+            _poolsRoot = rootObject.transform;
+            return _poolsRoot;
+        }
+
+        [System.Obsolete("Use GetPoolsRoot().")]
+        public static Transform GetAbilityPoolsRoot()
+        {
+            return GetPoolsRoot();
         }
     }
 }

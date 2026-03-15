@@ -28,7 +28,7 @@ namespace CaseStudy.Shared.Vfx.Services
         {
             GameObject rootObject = new GameObject("VfxPools");
             _root = rootObject.transform;
-            _root.SetParent(PoolRootRegistry.GetAbilityPoolsRoot(), false);
+            _root.SetParent(PoolRootRegistry.GetPoolsRoot(), false);
         }
 
         public void Spawn(GameObject vfxPrefab, Vector3 position, Quaternion rotation, float delaySeconds = 0f, float autoReturnSeconds = 0f)
@@ -284,5 +284,7 @@ namespace CaseStudy.Shared.Vfx.Services
         }
     }
 }
+
+
 
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.AbilitySystem.Events.Domain;
+using CaseStudy.Shared.AbilitySystem.Events.Presentation;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
@@ -163,3 +164,5 @@ namespace CaseStudy.Feature.AbilitySystem.UI
         }
     }
 }
+
+

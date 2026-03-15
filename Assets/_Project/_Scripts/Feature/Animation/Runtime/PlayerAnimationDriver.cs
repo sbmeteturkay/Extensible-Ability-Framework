@@ -1,6 +1,7 @@
 using System;
 using CaseStudy.Feature.Animation.Data;
-using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.AbilitySystem.Events.Domain;
+using CaseStudy.Shared.AbilitySystem.Events.Presentation;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
@@ -426,4 +427,6 @@ namespace CaseStudy.Feature.Animation.Runtime
         }
     }
 }
+
+
 

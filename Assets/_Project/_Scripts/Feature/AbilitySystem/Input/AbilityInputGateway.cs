@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using MessagePipe;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -106,3 +106,5 @@ namespace CaseStudy.Feature.AbilitySystem.Input
         }
     }
 }
+
+

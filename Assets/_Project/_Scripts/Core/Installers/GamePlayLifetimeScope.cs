@@ -1,4 +1,5 @@
-using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.AbilitySystem.Events.Domain;
+using CaseStudy.Shared.AbilitySystem.Events.Presentation;
 using MessagePipe;
 using VContainer;
 using VContainer.Unity;
@@ -27,3 +28,5 @@ namespace CaseStudy.Core.Installers
         }
     }
 }
+
+

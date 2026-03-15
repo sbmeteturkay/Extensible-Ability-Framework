@@ -9,8 +9,12 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         [SerializeField, Min(0.05f)] private float _dashDurationSeconds = 0.2f;
         [SerializeField] private AnimationCurve _speedCurve = AnimationCurve.Linear(0f, 1f, 1f, 1f);
 
+        [Header("Debug")]
+        [SerializeField] private bool _enableDebugTelemetry;
+
         public float DashDistance => _dashDistance;
         public float DashDurationSeconds => _dashDurationSeconds;
         public AnimationCurve SpeedCurve => _speedCurve;
+        public bool EnableDebugTelemetry => _enableDebugTelemetry;
     }
 }

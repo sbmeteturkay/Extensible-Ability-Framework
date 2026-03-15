@@ -1,5 +1,5 @@
 using CaseStudy.Feature.AbilitySystem.Contracts;
-using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using MessagePipe;
 using UnityEngine;
 using VContainer.Unity;
@@ -76,3 +76,4 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         }
     }
 }
+

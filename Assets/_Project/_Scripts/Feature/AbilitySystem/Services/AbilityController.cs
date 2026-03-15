@@ -4,7 +4,7 @@ using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Data;
 using CaseStudy.Feature.AbilitySystem.Domain;
-using CaseStudy.Shared.AbilitySystem.Events;
+using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using Cysharp.Threading.Tasks;
 using MessagePipe;
 using UnityEngine;
@@ -526,3 +526,5 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         }
     }
 }
+
+
