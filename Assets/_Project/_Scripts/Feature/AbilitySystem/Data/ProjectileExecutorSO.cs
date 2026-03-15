@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Abilities;
@@ -9,7 +9,7 @@ using UnityEngine;
 namespace CaseStudy.Feature.AbilitySystem.Data
 {
     [CreateAssetMenu(fileName = "SO_Executor_Projectile", menuName = "Ability/Executors/Projectile Executor")]
-    public sealed class ProjectileExecutorSO : AbilityExecutorSO
+    public sealed class ProjectileExecutorSO : AbilityExecutorSO, ITargetHitVisualConsumer
     {
         public override Type RequiredMechanicConfigType => typeof(ProjectileMechanicConfigSO);
         private readonly Dictionary<(int PrefabKey, int MaxPoolSize), ProjectilePool> _poolByKey = new();
@@ -99,9 +99,9 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             if (data != null && data.TryGetMechanicConfig(out ProjectileMechanicConfigSO module))
             {
                 ProjectileRuntime prefabRuntime = GetProjectileRuntime(module.ProjectilePrefab);
-                ResolveHitFeedbackModule(
+                ResolveTargetHitVisualModule(data, out HitVisualProfileSO targetHitVisualProfile);
+                ResolveProjectileImpactFeedbackModule(
                     data,
-                    out HitVisualProfileSO targetHitVisualProfile,
                     out GameObject impactVfxPrefab,
                     out float impactVfxDelaySeconds,
                     out float impactVfxAutoReturnSeconds,
@@ -132,27 +132,37 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             return false;
         }
 
-        private static void ResolveHitFeedbackModule(
+        private static void ResolveTargetHitVisualModule(
             AbilityDataSO data,
-            out HitVisualProfileSO targetHitVisualProfile,
+            out HitVisualProfileSO targetHitVisualProfile)
+        {
+            if (data != null && data.TryGetModule(out TargetHitVisualModuleSO hitVisualModule))
+            {
+                targetHitVisualProfile = hitVisualModule.TargetHitVisualProfile;
+                return;
+            }
+
+            targetHitVisualProfile = null;
+        }
+
+        private static void ResolveProjectileImpactFeedbackModule(
+            AbilityDataSO data,
             out GameObject impactVfxPrefab,
             out float impactVfxDelaySeconds,
             out float impactVfxAutoReturnSeconds,
             out AudioClip impactSfx,
             out float impactSfxVolume)
         {
-            if (data != null && data.TryGetModule(out AbilityHitFeedbackModuleSO hitFeedbackModule))
+            if (data != null && data.TryGetModule(out ProjectileImpactFeedbackModuleSO impactFeedbackModule))
             {
-                targetHitVisualProfile = hitFeedbackModule.TargetHitVisualProfile;
-                impactVfxPrefab = hitFeedbackModule.ImpactVfxPrefab;
-                impactVfxDelaySeconds = hitFeedbackModule.ImpactVfxDelaySeconds;
-                impactVfxAutoReturnSeconds = hitFeedbackModule.ImpactVfxAutoReturnSeconds;
-                impactSfx = hitFeedbackModule.ImpactSfx;
-                impactSfxVolume = hitFeedbackModule.ImpactSfxVolume;
+                impactVfxPrefab = impactFeedbackModule.ImpactVfxPrefab;
+                impactVfxDelaySeconds = impactFeedbackModule.ImpactVfxDelaySeconds;
+                impactVfxAutoReturnSeconds = impactFeedbackModule.ImpactVfxAutoReturnSeconds;
+                impactSfx = impactFeedbackModule.ImpactSfx;
+                impactSfxVolume = impactFeedbackModule.ImpactSfxVolume;
                 return;
             }
 
-            targetHitVisualProfile = null;
             impactVfxPrefab = null;
             impactVfxDelaySeconds = 0f;
             impactVfxAutoReturnSeconds = 0f;
@@ -287,3 +297,4 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
+

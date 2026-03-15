@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e08993bfddd22fb4981ef7a096ac1d8b, type: 3}
-  m_Name: SO_Ability_Giant_Loadout
+  m_Name: _SO_Ability_Giant_Loadout
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityLoadoutSO
   _abilities:
   - {fileID: 11400000, guid: df298a30ad71e41498ec55ee1f67f686, type: 2}

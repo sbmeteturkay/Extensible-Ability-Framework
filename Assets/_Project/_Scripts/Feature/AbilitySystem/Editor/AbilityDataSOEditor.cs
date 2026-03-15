@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -214,30 +214,53 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
             GenericMenu menu = new GenericMenu();
             List<Type> options = GetCreatableTypes(baseType);
             HashSet<Type> existingTypes = uniqueByType ? CollectExistingTypes(listProperty) : null;
+            AbilityExecutorSO selectedExecutor = _executorProperty.objectReferenceValue as AbilityExecutorSO;
 
-            if (options.Count == 0)
-            {
-                menu.AddDisabledItem(new GUIContent("No type available"));
-                menu.ShowAsContext();
-                return;
-            }
+            int addedCount = 0;
 
             for (int i = 0; i < options.Count; i++)
             {
                 Type optionType = options[i];
                 bool alreadyExists = uniqueByType && existingTypes != null && existingTypes.Contains(optionType);
-                GUIContent label = new GUIContent(optionType.Name);
-
                 if (alreadyExists)
                 {
-                    menu.AddDisabledItem(label);
                     continue;
                 }
 
+                if (!IsCompatibleOptionalModuleType(optionType, selectedExecutor))
+                {
+                    continue;
+                }
+
+                GUIContent label = new GUIContent(optionType.Name);
                 menu.AddItem(label, false, () => AddNewSubAssetToList(listProperty, optionType));
+                addedCount++;
+            }
+
+            if (addedCount == 0)
+            {
+                menu.AddDisabledItem(new GUIContent("No compatible module type"));
             }
 
             menu.ShowAsContext();
+        }
+
+        private static bool IsCompatibleOptionalModuleType(Type optionType, AbilityExecutorSO executor)
+        {
+            if (optionType == null || !typeof(AbilityOptionalModuleSO).IsAssignableFrom(optionType))
+            {
+                return true;
+            }
+
+            AbilityOptionalModuleSO tempModule = ScriptableObject.CreateInstance(optionType) as AbilityOptionalModuleSO;
+            if (tempModule == null)
+            {
+                return false;
+            }
+
+            bool isCompatible = tempModule.IsCompatibleWith(executor);
+            DestroyImmediate(tempModule);
+            return isCompatible;
         }
 
         private void AssignNewSubAsset(SerializedProperty property, Type subAssetType)

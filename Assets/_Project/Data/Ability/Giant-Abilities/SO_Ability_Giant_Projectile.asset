@@ -13,12 +13,25 @@ MonoBehaviour:
   m_Name: AbilityHitFeedbackModuleSO
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityHitFeedbackModuleSO
   _order: 0
-  _targetHitVisualProfile: {fileID: 11400000, guid: 669551f9f889b59418f0917dcde913af, type: 2}
   _impactVfxPrefab: {fileID: 1758473627833946668, guid: 9b21333b068a5084ba09535839bee3c8, type: 3}
   _impactVfxDelaySeconds: 0
   _impactVfxAutoReturnSeconds: 2
   _impactSfx: {fileID: 8300000, guid: 7bef0064f8567430cac22499c6b93d4f, type: 3}
   _impactSfxVolume: 1
+--- !u!114 &-2686490633834295206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80ef1617cfe4be544ae845bc75823e99, type: 3}
+  m_Name: TargetHitVisualModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.TargetHitVisualModuleSO
+  _order: 0
+  _targetHitVisualProfile: {fileID: 11400000, guid: 669551f9f889b59418f0917dcde913af, type: 2}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44,6 +57,7 @@ MonoBehaviour:
   _optionalModules:
   - {fileID: 8160812057409128935}
   - {fileID: -3975271225896418359}
+  - {fileID: -2686490633834295206}
 --- !u!114 &1378872218464300298
 MonoBehaviour:
   m_ObjectHideFlags: 0

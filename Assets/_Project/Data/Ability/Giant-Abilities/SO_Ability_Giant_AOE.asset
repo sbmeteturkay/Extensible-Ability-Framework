@@ -34,7 +34,7 @@ MonoBehaviour:
   _order: 0
   _castVfxPrefab: {fileID: 0}
   _castSfx: {fileID: 8300000, guid: 7e26c9daf4c32483b9c2790e662d3f1b, type: 3}
---- !u!114 &-496123898924717325
+--- !u!114 &-6476227971563241508
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -43,16 +43,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 563dc5914a0ce2742b0986c9e6a02f7a, type: 3}
-  m_Name: AbilityHitFeedbackModuleSO
-  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityHitFeedbackModuleSO
+  m_Script: {fileID: 11500000, guid: 80ef1617cfe4be544ae845bc75823e99, type: 3}
+  m_Name: TargetHitVisualModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.TargetHitVisualModuleSO
   _order: 0
   _targetHitVisualProfile: {fileID: 11400000, guid: c34ed9f73a296ef4aa8601529eef104c, type: 2}
-  _impactVfxPrefab: {fileID: 0}
-  _impactVfxDelaySeconds: 0
-  _impactVfxAutoReturnSeconds: 2
-  _impactSfx: {fileID: 8300000, guid: 7bef0064f8567430cac22499c6b93d4f, type: 3}
-  _impactSfxVolume: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,4 +72,4 @@ MonoBehaviour:
   _mechanicConfig: {fileID: -8905429607066836416}
   _optionalModules:
   - {fileID: -6666087784520695298}
-  - {fileID: -496123898924717325}
+  - {fileID: -6476227971563241508}

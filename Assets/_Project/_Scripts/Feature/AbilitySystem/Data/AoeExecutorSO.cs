@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Domain;
@@ -9,7 +9,7 @@ using UnityEngine;
 namespace CaseStudy.Feature.AbilitySystem.Data
 {
     [CreateAssetMenu(fileName = "SO_Executor_Aoe", menuName = "Ability/Executors/AOE Executor")]
-    public sealed class AoeExecutorSO : AbilityExecutorSO
+    public sealed class AoeExecutorSO : AbilityExecutorSO, ITargetHitVisualConsumer
     {
         public override Type RequiredMechanicConfigType => typeof(AoeMechanicConfigSO);
         private Collider[] _overlapBuffer = Array.Empty<Collider>();
@@ -134,8 +134,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
         private static HitVisualProfileSO ResolveTargetHitVisualProfile(AbilityDataSO data)
         {
-            return data != null && data.TryGetModule(out AbilityHitFeedbackModuleSO hitFeedbackModule)
-                ? hitFeedbackModule.TargetHitVisualProfile
+            return data != null && data.TryGetModule(out TargetHitVisualModuleSO hitVisualModule)
+                ? hitVisualModule.TargetHitVisualProfile
                 : null;
         }
 
@@ -215,20 +215,14 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             }
 
             public float Radius { get; }
-
             public float HitDelaySeconds { get; }
-
             public float EffectDurationSeconds { get; }
-
             public int MaxTargets { get; }
-
             public GameObject AoeVfxPrefab { get; }
-
             public float AoeVfxDelaySeconds { get; }
-
             public float AoeVfxAutoReturnSeconds { get; }
-
             public HitVisualProfileSO TargetHitVisualProfile { get; }
         }
     }
 }
+

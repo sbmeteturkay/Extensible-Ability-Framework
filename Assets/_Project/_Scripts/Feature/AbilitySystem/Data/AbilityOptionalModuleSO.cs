@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Domain;
 using CaseStudy.Shared.AbilitySystem.Events;
 using Cysharp.Threading.Tasks;
@@ -15,6 +15,11 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         [SerializeField] private int _order;
 
         public int Order => _order;
+
+        public virtual bool IsCompatibleWith(AbilityExecutorSO executor)
+        {
+            return true;
+        }
 
         public virtual bool TryApplyBeforeTrigger(
             AbilityContext context,

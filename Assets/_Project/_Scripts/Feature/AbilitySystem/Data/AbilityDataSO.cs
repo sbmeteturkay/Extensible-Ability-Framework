@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -96,7 +96,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 return false;
             }
 
-            if (!TryValidateOptionalModules(out validationError))
+            if (!TryValidateOptionalModules(_executor, out validationError))
             {
                 return false;
             }
@@ -165,7 +165,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             _optionalModules ??= new List<AbilityOptionalModuleSO>();
         }
 
-        private bool TryValidateOptionalModules(out string validationError)
+        private bool TryValidateOptionalModules(AbilityExecutorSO executor, out string validationError)
         {
             var seenModuleTypes = new HashSet<Type>();
             int count = _optionalModules.Count;
@@ -183,6 +183,12 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 if (!seenModuleTypes.Add(moduleType))
                 {
                     validationError = $"Duplicate optional module type detected: {moduleType.Name}. Keep one module per type.";
+                    return false;
+                }
+
+                if (executor != null && !module.IsCompatibleWith(executor))
+                {
+                    validationError = $"Module '{moduleType.Name}' is not compatible with executor '{executor.GetType().Name}'.";
                     return false;
                 }
             }
