@@ -1,68 +1,71 @@
-# Locomotion Feature Dokumani
+# Locomotion Feature
 
 ## 1. Amac
 
-Locomotion feature'i oyuncu hareket ve donusunu, input kaynagindan ayrik bir servis katmaninda yonetir.
-Ability lock durumuna saygili calisir.
+Locomotion feature, player hareket ve donusunu fizik pipeline ile uyumlu bicimde yonetir.
+Ability lock durumunu merkezi servisten okuyarak hareketi bloke edebilir.
 
-## 2. Scope ve Bilesenler
+## 2. Scope Siniri
 
-- `LocomotionLifetimeScope`
-  - `LocomotionInputGateway` register
-  - `LocomotionRuntimeBootstrap` register
-  - `LocomotionController` register (`ILocomotionController`)
-  - `ILocomotionInputReader` -> `LocomotionInputGateway`
+Feature'in sorumlulugu:
+- Move input'u okumak ve cache'lemek
+- Rigidbody tabanli movement + rotation uygulamak
+- Dead zone ve lock kontrolu
+
+Feature disinda kalanlar:
+- Ability davranislari
+- Animator state kararlari
+
+## 3. Runtime Bilesenleri
+
+- `LocomotionInputGateway` (`ILocomotionInputReader`)
+- `LocomotionRuntimeBootstrap`
+- `LocomotionController` (`ILocomotionController`, `IFixedTickable`)
+- `LocomotionDataSO`
 
 Bagimlilik:
-- `LocomotionController`, `ILocomotionLockService` bagimliligini `PlayerLifetimeScope` uzerinden alir.
-
-## 3. Ana Siniflar
-
-- `LocomotionDataSO`
-  - Move speed
-  - Rotation speed
-  - Input dead zone
-
-- `LocomotionInputGateway`
-  - InputAction'dan move vector oku ve cache'le.
-  - `ILocomotionInputReader` implement eder.
-
-- `LocomotionRuntimeBootstrap`
-  - Transform, Rigidbody, data ve input baglantilarini kurar.
-  - `LocomotionContext` olusturup controller'a verir.
-
-- `LocomotionController`
-  - `IFixedTickable`
-  - Dead zone kontrolu
-  - Direction normalize
-  - Rigidbody `MovePosition` ve `MoveRotation`
-  - Lock aciksa hareketi durdurur
+- `LocomotionController` -> `ILocomotionLockService` (shared)
 
 ## 4. Calisma Akisi
 
-1. Input gateway move input'u cache'ler.
-2. Controller her `FixedTick`'te input'u okur.
-3. Dead zone altinda ise erken cikis.
-4. Lock aciksa erken cikis.
-5. Move direction ve distance hesaplanir.
-6. Rigidbody ile position/rotation uygulanir.
+1. Gateway input vector'u cache'ler.
+2. Controller `FixedTick`'te input'u okur.
+3. Dead zone altinda erken cikis yapar.
+4. Lock aciksa erken cikis yapar.
+5. Yon normalize edilir.
+6. `MovePosition` ve `MoveRotation` uygulanir.
 
-## 5. Tasarim Kararlari
+## 5. Data Kontrati
 
-- `Update` yerine `FixedTick`:
-  - Rigidbody hareketiyle tutarlilik icin.
-- Input gateway ayrimi:
-  - Kontrol mantigi ile input sistemi ayrik kalir.
-- Lock service bagimliligi:
-  - Ability gibi diger feature'lar hareketi merkezi sekilde bloke edebilir.
+`LocomotionDataSO` alanlari:
+- `MoveSpeed`
+- `RotationSpeedDegreesPerSecond`
+- `InputDeadZone`
 
-## 6. Performans ve Guvenlik
+## 6. Entegrasyon Noktalari
 
-- `GetComponent` cache bootstrap/awake asamasinda yapilir.
-- `FixedTick` icinde allocation yapilmaz.
-- Eksik data/referans durumunda bootstrap component kendini devre disi birakir.
+- Input:
+  - `LocomotionInputGateway` yalnizca input okumak ve cache'lemekle sorumludur
+- Ability:
+  - `ILocomotionLockService` uzerinden hareket kilidi okunur
+- Animation:
+  - Driver, animator verisini locomotion'dan itmek yerine pozisyon deltasi uzerinden hesaplar
 
-## 7. Bilinen Sinirlar
+## 7. Performans ve Guvenlik
 
-- Su an yalnizca duzlem tabanli hareket (Y ekseni hareket yok).
-- Sprint/acceleration/air-control gibi advanced behavior katmanlari eklenmedi.
+- `FixedTick` icinde allocation yok.
+- Runtime referanslari bootstrap asamasinda kurulur.
+- Eksik config/referans durumunda bootstrap kendini guvenli sekilde kapatir.
+
+## 8. Manuel Test Checklist
+
+- Dead zone davranisi
+- W/A/S/D + joystick input uyumu
+- Lock acikken hareketin durmasi
+- Rotation hizinin stabilitesi
+- Rigidbody ile duvar/collision uyumu
+
+## 9. Trade-off
+
+- Su an duzlem tabanli hareket var (Y ekseni locomotion yok).
+- Sprint/acceleration/air-control katmanlari sonraki fazda eklenebilir.

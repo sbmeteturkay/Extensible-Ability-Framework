@@ -1,164 +1,129 @@
-# Ability System Feature Dokumani
+# Ability System Feature
 
 ## 1. Amac
 
-Ability feature'i, input -> trigger -> validation -> execute -> feedback zincirini data-driven sekilde yonetir.
-Sistem hem oyuncu runtime'i hem de scene HUD tarafi icin ayrik scope'lara bolunmustur.
+Ability feature, `input -> validate -> execute -> feedback` zincirini data-driven sekilde yonetir.
+Ana hedef, yeni ability icerigini mevcut runtime kodunu degistirmeden asset uzerinden uretebilmektir.
 
-## 2. Scope ve Bagimlilik Haritasi
+## 2. Scope Siniri
 
-- `GamePlayLifetimeScope`
-  - Ability event broker'larini register eder.
-- `PlayerLifetimeScope`
-  - `ILocomotionLockService` register eder.
-- `AbilityPlayerLifetimeScope`
-  - `AbilityRuntimeBootstrap`
-  - `AbilityController`, `AbilityFactory`
-  - `CooldownService`, `EnergyService`
-  - `IPooledVfxService`
-- `AbilitySceneLifetimeScope`
-  - `AbilityInputGateway`
-  - `AbilityHudPresenter`
+Feature'in sorumlulugu:
+- Ability tetikleme ve yurutme orkestrasyonu
+- Cooldown ve enerji yonetimi
+- Executor + module pipeline
+- HUD ve animation'a event ile veri aktarma
 
-Iletisim kurali:
-- Player ve Scene tarafi birbirini direkt tanimaz.
-- Ortak kanal `CaseStudy.Shared.AbilitySystem.Events` eventleridir.
+Feature disinda kalanlar:
+- Temel player hareket sistemi (Locomotion feature)
+- Animator state machine tasarimi (Animation feature)
 
-## 3. Ana Siniflar ve Sorumluluklar
+## 3. Runtime Mimarisi
 
-### 3.1 Runtime ve Orkestrasyon
-
+Temel runtime siniflari:
 - `AbilityRuntimeBootstrap`
-  - Loadout data'sini validate eder.
-  - `AbilityContext` olusturur.
-  - Controller konfigurasyonunu yapar.
-  - HUD tarafi icin `AbilityLoadoutSlotAssignedEvent` publish eder.
-
 - `AbilityController`
-  - Trigger request dinler.
-  - Cooldown ve enerji kontrollerini yapar.
-  - Override pipeline calistirir.
-  - Executor-based ability calistirir.
-  - Basari/basarisizlik eventleri publish eder.
-
 - `AbilityFactory`
-  - `AbilityDataSO + Executor` icin runtime `ExecutorAbility` olusturur.
+- `CooldownService`
+- `EnergyService`
 
-### 3.2 Data Katmani
+Scope dagilimi:
+- `AbilitySceneLifetimeScope`: input ve HUD tarafini baglar
+- `AbilityPlayerLifetimeScope`: loadout, runtime servisleri ve execution tarafini barindirir
 
-- `AbilityDataSO`
-  - Common alanlar: cooldown, energy, target group, movement policy, executor
-  - `List<AbilityModuleSO>`
-  - `List<AbilityOverrideSO>`
-  - `AbilityKey` asset GUID ile otomatik atanir.
+Calisma akisi:
+1. Input/HUD `AbilityTriggerRequestedEvent` publish eder.
+2. `AbilityController` slottan `AbilityDataSO` cozer.
+3. Validation + before-trigger module hook'lari calisir.
+4. Cooldown/energy/execution gate kontrolleri calisir.
+5. Executor `ExecuteAsync` calisir.
+6. Cooldown/energy/trigger eventleri publish edilir.
+7. After-execute module hook'lari calisir.
 
-- `AbilityModuleSO` turevleri
-  - `DashAbilityModuleSO`
-  - `ProjectileAbilityModuleSO`
-  - `AoeAbilityModuleSO`
-  - `HitVisualProfileSO`
+## 4. Data Kontrati
 
-- `AbilityOverrideSO` turevleri
-  - `AbilityExecutionValueOverrideSO`
+Tek ana asset: `AbilityDataSO`
+- Common: cooldown, energy, target groups, movement policy, icon
+- Zorunlu: `AbilityExecutorSO`, `AbilityMechanicConfigSO`
+- Opsiyonel: `List<AbilityOptionalModuleSO>`
+- Kimlik: `AbilityKey` (asset GUID, otomatik)
 
-- Slot ve hedefleme datasi
-  - `SlotDefinitionSO`
-  - `AbilityLoadoutSO`
-  - `AbilityTargetingProfileSO`
+Authoring ilkesi:
+- Yeni icerik varyanti: yeni `AbilityDataSO`
+- Yeni mekanik turu: yeni `AbilityExecutorSO` + yeni `AbilityMechanicConfigSO`
+- Yeni opsiyonel davranis/feedback: yeni `AbilityOptionalModuleSO`
 
-### 3.3 Executor Katmani
-
+Mevcut executorlar:
 - `DashExecutorSO`
-  - Rigidbody `MovePosition` ile sureli dash.
-
 - `ProjectileExecutorSO`
-  - Projectile pool'dan runtime alir.
-  - Spawn offset + aim ray ile launch direction hesaplar.
-
 - `AoeExecutorSO`
-  - `HitDelaySeconds` bekler.
-  - `OverlapSphereNonAlloc` ile hedef toplar.
-  - Hit visual ve hit vfx uygular.
 
-### 3.4 Scene ve UI
+## 5. Event Kontrati
 
-- `AbilityInputGateway`
-  - InputAction -> `AbilityTriggerRequestedEvent` publish.
+Domain events (`CaseStudy.Shared.AbilitySystem.Events.Domain`):
+- `AbilityTriggerRequestedEvent`
+- `AbilityTriggeredEvent`
+- `AbilityExecutionFailedEvent`
+- `AbilityExecutionDiagnosticEvent`
+- `AbilityCooldownStartedEvent`
+- `AbilityCooldownUpdatedEvent`
+- `AbilityCooldownCompletedEvent`
+- `AbilityEnergyChangedEvent`
 
-- `AbilityHudPresenter`
-  - Event subscribe ederek HUD state'ini gunceller.
-  - Slot click'ten trigger event publish eder.
+Presentation events (`CaseStudy.Shared.AbilitySystem.Events.Presentation`):
+- `AbilityLoadoutSlotAssignedEvent`
 
-- `AbilityHudView` / `AbilityHudSlotWidget`
-  - Energy slider, icon, cooldown fill/text render eder.
+## 6. Authoring Akisi
 
-## 4. Event Akisi
+Kod yazmadan yeni ability varyanti:
+1. `AbilityDataSO` olustur.
+2. Executor referansi ata.
+3. Executor'un istedigi `MechanicConfig` subasset'ini olustur.
+4. Gerekli optional module'leri ekle.
+5. `AbilityLoadoutSO` listesine ekle.
 
-1. `AbilityInputGateway` veya HUD click `AbilityTriggerRequestedEvent` publish eder.
-2. `AbilityController` trigger'i alir.
-3. Validation sirasi:
-   - slot resolve
-   - data resolve
-   - override before-trigger
-   - cooldown check
-   - energy check
-4. Ability execute edilir.
-5. Cooldown baslatilir.
-6. `AbilityTriggeredEvent` ve gerekirse failure/diagnostic eventleri yayinlanir.
-7. HUD presenter cooldown + energy eventleriyle UI'yi gunceller.
+Yeni mekanik turu:
+1. `AbilityMechanicConfigSO` turevi yaz.
+2. `AbilityExecutorSO` turevi yaz.
+3. `TryValidate` ve `ExecuteAsync` uygula.
 
-## 5. Hit Visual ve VFX Semantigi
+Yeni opsiyonel davranis:
+1. `AbilityOptionalModuleSO` turevi yaz.
+2. Gerekli hook asamalarini uygula.
+3. Ability asset'ine module olarak ekle.
 
-- `AoeAbilityModuleSO.HitDelaySeconds`
-  - AOE hit isleminin ne zaman olacagini belirler.
-- `HitVisualProfileSO.HitVisualDelaySeconds`
-  - Flash/scale/bounce baslangic gecikmesi.
-- `HitVisualProfileSO.HitVfxDelaySeconds`
-  - Hit VFX spawn gecikmesi.
-- `ProjectileAbilityModuleSO.ImpactVfxDelaySeconds`
-  - Projectile impact VFX gecikmesi.
+## 7. Son Guncellemeler
 
-VFX politikasi:
-- Ability tarafinda VFX spawnlari pool zorunlu.
-- Pool servisi yoksa instantiate yerine warning + skip uygulanir.
+- Event yapisi Domain/Presentation olarak ayrildi.
+- Dash executor sweep tabanli collision check kullaniyor.
+- `DashMechanicConfigSO` icinde `EnableDebugTelemetry` mevcut.
+- `AbilityDataSOEditor` foldable bolumler + validation panel ile calisiyor.
 
-## 6. Yeni Ability Ekleme Rehberi
+## 8. Manuel Test Checklist
 
-### 6.1 Kod Yazmadan Yeni Icerik Varyanti
+- Slot tetikleme (input + HUD)
+- Cooldown baslatma/update/bitis
+- Ortak enerji slider davranisi
+- Dash engelde kesilme
+- Projectile spawn/impact pooling
+- AOE hit delay + hit visual
+- Animator trigger/index/speed aktarimi
 
-1. Yeni `AbilityDataSO` asset olustur.
-2. Uygun executor asset referansini ata.
-3. Gerekli module asset'lerini ekle.
-4. Slot assignment icin `AbilityLoadoutSO`'da ilgili slota bagla.
-5. Icon ve cooldown/energy degerlerini ayarla.
+## 9. Entegrasyon Noktalari
 
-Bu akista mevcut C# dosyasi degistirilmez.
+- Input:
+  - `AbilityTriggerRequestedEvent`
+- HUD:
+  - cooldown/energy ve slot assignment event akisi
+- Locomotion:
+  - `ILocomotionLockService`
+- Animation:
+  - `AbilityTriggeredEvent`
+- Shared:
+  - MessagePipe event broker
+  - pooled VFX servisi
 
-### 6.2 Yeni Mekanik Ekleme (Kodlu)
+## 10. Trade-off
 
-1. `AbilityModuleSO` turevi olustur (mekanik parametreleri).
-2. `AbilityExecutorSO` turevi olustur (runtime davranis).
-3. `TryValidate` ve `CanExecute` kurallarini ekle.
-4. `AbilityDataSO` asset'inde yeni executor + module ile test et.
-
-Not:
-- `AbilityFactory` degistirmen gerekmez.
-- `ExecutorAbility` catisi executor tabanli calistigi icin sistem acik kalir.
-
-## 7. Hata Toleransi Notlari
-
-- Bootstrap seviyesinde null/config guard'lari vardir.
-- `AbilityDataSO.TryValidateConfiguration` zorunlu kontrolleri calistirir.
-- Duplicate slot key durumunda son atama kazanir, warning log atilir.
-
-## 8. Performans Notlari
-
-- `OverlapSphereNonAlloc` kullanilir.
-- Pooling projectile ve VFX tarafinda aktiftir.
-- Slot key normalize islemi tek utility'de tutulur (`AbilitySlotKeyUtility`).
-- HUD ve input akisi event-driven oldugu icin gereksiz polling azaltilir.
-
-## 9. Bilinen Sinirlar
-
-- Otomatik test coverage henuz sinirli.
-- Override sistemi temel seviyede; daha genel composable override zinciri ileri faza acik.
+- Otomatik test kapsami sinirli; manuel smoke agirlikli.
+- Module pipeline sade tutuldu; daha zengin chain sonraki faz.
+- Energy regen sabit (`10/s`) ve configlesmedirilmadi.

@@ -1,6 +1,6 @@
 # Ability Feature Scope Guide
 
-This document defines the runtime scope boundaries and authoring contract for the Ability feature.
+This document defines runtime scope boundaries and the authoring contract for the Ability feature.
 
 ## 1. Scope Topology
 
@@ -16,15 +16,21 @@ Both child scopes communicate through MessagePipe brokers registered in the pare
 Owns shared event brokers used across features.
 
 Registered ability-related brokers:
-- AbilityTriggerRequestedEvent
-- AbilityTriggeredEvent
-- AbilityExecutionFailedEvent
-- AbilityExecutionDiagnosticEvent
-- AbilityCooldownStartedEvent
-- AbilityCooldownUpdatedEvent
-- AbilityCooldownCompletedEvent
-- AbilityEnergyChangedEvent
-- AbilityLoadoutSlotAssignedEvent
+- Domain events:
+  - AbilityTriggerRequestedEvent
+  - AbilityTriggeredEvent
+  - AbilityExecutionFailedEvent
+  - AbilityExecutionDiagnosticEvent
+  - AbilityCooldownStartedEvent
+  - AbilityCooldownUpdatedEvent
+  - AbilityCooldownCompletedEvent
+  - AbilityEnergyChangedEvent
+- Presentation events:
+  - AbilityLoadoutSlotAssignedEvent
+
+Event namespaces:
+- CaseStudy.Shared.AbilitySystem.Events.Domain
+- CaseStudy.Shared.AbilitySystem.Events.Presentation
 
 ### AbilitySceneLifetimeScope
 Scene/UI side only.
@@ -45,7 +51,7 @@ Responsibilities:
 - Build and validate ability runtime from loadout
 - Execute abilities
 - Manage cooldown and energy
-- Apply overrides
+- Run optional module hooks
 - Publish execution events
 
 Main bindings:
@@ -58,31 +64,32 @@ Main bindings:
 
 ## 3. Ability Authoring Contract
 
-Each ability asset must be AbilityDataSO and must define:
+Each ability asset must be AbilityDataSO and must define (single-asset authoring via embedded subassets):
 - Executor (required)
-- Modules (required by executor, one module per module type)
-- Optional Overrides
+- MechanicConfig (required by executor)
+- OptionalModules
 - Common fields: cooldown, energy, movement policy, targeting, icon
 
 Validation guardrails (editor + runtime):
 - Executor must exist
 - No negative cooldown/energy/min lock values
-- No null module entries
-- No duplicate module type in module list
-- No null override entries
+- No null optional module entries
+- No duplicate optional module type in module list
 - Executor-specific validation must pass
 
 ## 4. Execution Flow
 
-1. Scene input publishes AbilityTriggerRequestedEvent(slotKey)
+1. Scene input publishes AbilityTriggerRequestedEvent(slotIndex)
 2. AbilityController resolves slot and data
-3. Pre-trigger overrides run (ordered by override order)
+3. Pre-trigger module hooks run (ordered by module order)
 4. Cooldown check
-5. CanExecute check
-6. Energy consume
-7. Ability execute via executor
-8. Cooldown start + triggered event publish
-9. Post-execute overrides run
+5. Execution gate check
+6. CanExecute check
+7. Energy consume
+8. Before-execute module hooks run
+9. Ability execute via executor
+10. Cooldown start + triggered event publish
+11. After-execute module hooks run
 
 Failure path:
 - AbilityExecutionFailedEvent is always published
@@ -91,7 +98,7 @@ Failure path:
 ## 5. Diagnostic Telemetry
 
 AbilityExecutionDiagnosticEvent fields:
-- SlotKey
+- SlotIndex
 - AbilityKey
 - Reason
 - Stage
@@ -101,45 +108,25 @@ AbilityExecutionDiagnosticEvent fields:
 Typical Stage values:
 - ResolveSlot
 - ResolveData
-- BeforeTriggerOverrides
+- BeforeTriggerModules
 - CooldownCheck
+- ExecutionGate
 - CanExecute
 - EnergyCheck
 - ExecuteAsync
 
-Use this event for logs, in-game debug panels, or analytics adapters.
-
-## 6. How To Add a New Ability
-
-For a new content variant (same mechanic):
-1. Create or reuse an executor asset
-2. Create AbilityDataSO asset
-3. Create module asset(s) required by executor
-4. Assign executor + module(s) on AbilityDataSO
-5. Add asset to loadout slot
-6. Test trigger, cooldown, energy, and telemetry
-
-For a new mechanic type:
-1. Create new AbilityExecutorSO implementation
-2. Define new module SO type(s)
-3. Implement executor TryValidate + ExecuteAsync
-4. Create data/module assets and bind to loadout
-
-## 7. Design Boundaries
+## 6. Design Boundaries
 
 - Executor: core mechanic runtime logic
-- Module: mechanic-specific data payload
-- Override: runtime modification layer (cross-cutting behavior)
+- MechanicConfig: executor-specific required payload
+- OptionalModule: optional, composable, cross-cutting feature addon
 
 Rule of thumb:
-- If value is static per ability, keep it in AbilityDataSO/module
-- If value changes by runtime condition, use override
-- If behavior is fundamentally different, add new executor
+- Static per-ability values: AbilityDataSO / MechanicConfig / OptionalModule
+- Fundamentally different mechanic behavior: new executor
 
-## 8. Trade-offs
+## 7. Trade-offs
 
-Current trade-off:
-- Strong validation and explicit layering reduce bad config risk
-- Authoring has more assets (data + module + optional overrides)
+- Explicit layering reduces bad-config risk
+- Authoring speed is high, but custom inspector/tooling dependency is higher
 
-This is intentional for long-term scalability and safer iteration.

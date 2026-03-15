@@ -1,64 +1,70 @@
-# Animation Feature Dokumani
+# Animation Feature
 
 ## 1. Amac
 
-Animation feature'i, player hareket verisini animator parametrelerine stabil sekilde yazar ve ability tetiklerini animasyon katmanina aktarir.
+Animation feature, hareket verisini animator parametrelerine stabil sekilde aktarir ve ability eventlerinden gelen tetik/speed bilgisini animatora yazar.
 
-## 2. Scope ve Bilesenler
+## 2. Scope Siniri
 
-- `PlayerAnimationLifetimeScope`
-  - `PlayerAnimationDriver` component'ini hierarchy'den register eder.
+Feature'in sorumlulugu:
+- Hareket parametrelerini hesaplayip animatora yazmak
+- Ability trigger/index/speed sinyallerini consume etmek
+- Runtime clip override eslesmesini uygulamak
 
-- Data
-  - `PlayerAnimationConfigSO`
-    - Parametre adlari
-    - Esik ve hold degerleri
-    - Damping ayarlari
-    - Ability trigger/index parametreleri
+Feature disinda kalanlar:
+- Ability execute kararlari
+- Locomotion hareket hesaplari
 
-## 3. Ana Sinif: PlayerAnimationDriver
+## 3. Runtime Bilesenleri
 
-Sorumluluklar:
-- `FixedUpdate`:
-  - Pozisyon delta'sindan dunya hizi hesaplar.
-  - Local velocity'ye cevirir.
-  - `isMoving` kararini threshold + hold penceresiyle verir.
-- `Update`:
-  - Animator float/bool parametrelerini yazar.
-  - Ability sinyallerini consume eder.
-- Event entegrasyonu:
-  - `AbilityTriggeredEvent` subscribe eder.
-  - Opsiyonel `AbilityUsed` trigger + `AbilityIndex` parametresi set eder.
+- `PlayerAnimationDriver`
+- `PlayerAnimationConfigSO`
 
-## 4. Stabilite Kararlari
+Config kapsami:
+- Parametre adlari
+- Threshold/hold ve damping ayarlari
+- Ability hook parametreleri
+- Slot source clip listesi
 
-- Animator hash cache:
-  - Parametre isimleri `Animator.StringToHash` ile tek seferde cache'lenir.
-- Yazim esigi:
-  - Float parametreler sadece deger anlamli degistiginde yazilir (`FLOAT_WRITE_EPSILON`).
-- Hareket karari:
-  - Threshold + hold kombinasyonu sayesinde titreme ve kisa sifirlamalar azaltilir.
+## 4. Calisma Akisi
 
-## 5. Bagimliliklar
+1. `FixedUpdate`:
+- Pozisyon delta'sindan velocity hesaplanir.
+- Local hareket bilesenleri normalize edilir.
+- `isMoving` threshold + hold ile karar verilir.
 
-- Zorunlu:
-  - `Transform`
-  - `Rigidbody`
-  - `Animator`
-  - `PlayerAnimationConfigSO`
-- Opsiyonel:
-  - `ISubscriber<AbilityTriggeredEvent>`
+2. `Update`:
+- Animator float/bool parametreleri yazilir.
+- Pending ability sinyalleri consume edilir.
 
-Eksik setup durumunda driver guvenli sekilde no-op davranir.
+3. Event akisi:
+- `AbilityTriggeredEvent` (domain)
+- `AbilityLoadoutSlotAssignedEvent` (presentation)
 
-## 6. Animasyon Entegrasyon Rehberi
+## 5. Entegrasyon Noktalari
 
-1. `PlayerAnimationConfigSO` olustur.
-2. Animator parametre adlarini config ile eslestir.
-3. Player prefab uzerindeki `PlayerAnimationDriver`'a config ata.
-4. Ability trigger/index kullanilacaksa animatorda ilgili parametreleri ac.
+- Locomotion:
+  - Hareket verisi dogrudan locomotion component'inden alinmaz; pozisyon deltasi uzerinden hesaplanir
+- Ability:
+  - `AbilityTriggeredEvent` ile trigger, slot index ve speed bilgisi alinabilir
+- Loadout:
+  - `AbilityLoadoutSlotAssignedEvent` ile slot-clip eslesmesi guncellenir
 
-## 7. Bilinen Sinirlar
+## 6. Stabilite Kararlari
 
-- Root motion tabanli animasyon desteklenmiyor; runtime velocity tabanli calisiyor.
-- Layer bazli blend logic ve state machine callback entegrasyonlari su an sade tutuldu.
+- Parametre hash'leri cache edilir.
+- Float yazimlari epsilon ile filtrelenir.
+- Damping config ile ac/kapa yapilabilir.
+- Setup eksiginde driver guvenli no-op davranir.
+
+## 7. Manuel Test Checklist
+
+- MoveX/MoveY/Speed/IsMoving dogru akiyor mu
+- Ability trigger + slot index animatora gidiyor mu
+- Ability speed parametresi cast aninda guncelleniyor mu
+- Slot clip override eslesmesi dogru mu
+
+## 8. Trade-off
+
+- Root motion yerine runtime velocity bazli akis secildi.
+- Layer bazli ileri seviye blend/state callback entegrasyonu sade tutuldu.
