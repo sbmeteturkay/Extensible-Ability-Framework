@@ -1,3 +1,5 @@
+using CaseStudy.Core.PlayerControl.Contracts;
+using CaseStudy.Core.PlayerControl.Services;
 using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using CaseStudy.Shared.AbilitySystem.Events.Presentation;
 using MessagePipe;
@@ -16,6 +18,9 @@ namespace CaseStudy.Core.Installers
         {
             MessagePipeOptions messagePipeOptions = builder.RegisterMessagePipe();
 
+            builder.Register<PlayerSwitchService>(Lifetime.Singleton);
+            builder.Register<IPlayerSwitchService>(resolver => resolver.Resolve<PlayerSwitchService>(), Lifetime.Singleton);
+
             builder.RegisterMessageBroker<AbilityTriggerRequestedEvent>(messagePipeOptions);
             builder.RegisterMessageBroker<AbilityTriggeredEvent>(messagePipeOptions);
             builder.RegisterMessageBroker<AbilityExecutionFailedEvent>(messagePipeOptions);
@@ -28,5 +33,3 @@ namespace CaseStudy.Core.Installers
         }
     }
 }
-
-

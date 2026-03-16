@@ -2,6 +2,7 @@ using CaseStudy.Feature.Locomotion.Contracts;
 using CaseStudy.Feature.Locomotion.Input;
 using CaseStudy.Feature.Locomotion.Runtime;
 using CaseStudy.Feature.Locomotion.Services;
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
@@ -15,8 +16,14 @@ namespace CaseStudy.Feature.Locomotion.Installers
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            builder.RegisterComponentInHierarchy<LocomotionInputGateway>();
-            builder.RegisterComponentInHierarchy<LocomotionRuntimeBootstrap>();
+            if (!TryGetComponent(out LocomotionInputGateway locomotionInputGateway) || !TryGetComponent(out LocomotionRuntimeBootstrap locomotionRuntimeBootstrap))
+            {
+                Debug.Log("LocomotionInputGateway or LocomotionRuntimeBootstrap is null");
+                return;
+            }
+
+            builder.RegisterComponent(locomotionInputGateway);
+            builder.RegisterComponent(locomotionRuntimeBootstrap);
 
             builder.Register<LocomotionController>(Lifetime.Singleton);
             builder.Register<ILocomotionController>(resolver => resolver.Resolve<LocomotionController>(), Lifetime.Singleton);

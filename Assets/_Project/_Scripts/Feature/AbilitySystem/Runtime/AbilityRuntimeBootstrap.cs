@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Data;
+using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using CaseStudy.Shared.AbilitySystem.Events.Presentation;
 using CaseStudy.Shared.Locomotion.Interfaces;
 using CaseStudy.Shared.Vfx.Interfaces;
@@ -24,10 +25,14 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         [SerializeField] private AbilityLoadoutSO _loadout;
         [SerializeField] private AbilityTargetingProfileSO _targetingProfile;
 
+        private readonly Dictionary<int, AbilityDataSO> _resolvedMapping = new(8);
+
         private IAbilityController _abilityController;
         private ICooldownService _cooldownService;
         private IEnergyService _energyService;
+        private IAbilityInputGate _abilityInputGate;
         private IPublisher<AbilityLoadoutSlotAssignedEvent> _slotAssignedPublisher;
+        private IPublisher<AbilityEnergyChangedEvent> _energyChangedPublisher;
         private ILocomotionLockService _locomotionLockService;
         private IPooledVfxService _pooledVfxService;
 
@@ -37,17 +42,20 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             ICooldownService cooldownService,
             IEnergyService energyService,
             IPublisher<AbilityLoadoutSlotAssignedEvent> slotAssignedPublisher,
+            IPublisher<AbilityEnergyChangedEvent> energyChangedPublisher,
             IObjectResolver resolver)
         {
             _abilityController = abilityController;
             _cooldownService = cooldownService;
             _energyService = energyService;
             _slotAssignedPublisher = slotAssignedPublisher;
+            _energyChangedPublisher = energyChangedPublisher;
 
             if (resolver != null)
             {
                 resolver.TryResolve<ILocomotionLockService>(out _locomotionLockService);
                 resolver.TryResolve<IPooledVfxService>(out _pooledVfxService);
+                resolver.TryResolve<IAbilityInputGate>(out _abilityInputGate);
             }
         }
 
@@ -105,7 +113,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                 return;
             }
 
-            var mapping = new Dictionary<int, AbilityDataSO>(configuredAbilities.Count);
+            _resolvedMapping.Clear();
 
             for (int slotIndex = 0; slotIndex < configuredAbilities.Count; slotIndex++)
             {
@@ -116,10 +124,10 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                     continue;
                 }
 
-                mapping[slotIndex] = validatedData;
+                _resolvedMapping[slotIndex] = validatedData;
             }
 
-            if (mapping.Count <= 0)
+            if (_resolvedMapping.Count <= 0)
             {
                 Debug.LogWarning("AbilityRuntimeBootstrap: no valid abilities found in loadout.");
                 enabled = false;
@@ -136,9 +144,22 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                 _pooledVfxService,
                 _targetingProfile);
 
-            _abilityController.Configure(mapping, context);
+            _abilityController.Configure(_resolvedMapping, context);
 
-            foreach (KeyValuePair<int, AbilityDataSO> pair in mapping)
+            if (_abilityInputGate == null || _abilityInputGate.IsInputGateOpen)
+            {
+                RepublishPresentationState();
+            }
+        }
+
+        public void RepublishPresentationState()
+        {
+            if (_slotAssignedPublisher == null || _resolvedMapping.Count <= 0)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<int, AbilityDataSO> pair in _resolvedMapping)
             {
                 ResolveAbilityAnimation(pair.Value, out AnimationClip abilityAnimationClip, out float abilityAnimationSpeed);
                 _slotAssignedPublisher.Publish(new AbilityLoadoutSlotAssignedEvent(
@@ -147,6 +168,11 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
                     pair.Value.Icon,
                     abilityAnimationClip,
                     abilityAnimationSpeed));
+            }
+
+            if (_energyChangedPublisher != null && _energyService != null)
+            {
+                _energyChangedPublisher.Publish(new AbilityEnergyChangedEvent(_energyService.CurrentEnergy, _energyService.MaxEnergy));
             }
         }
 
@@ -185,5 +211,3 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         }
     }
 }
-
-

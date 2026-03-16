@@ -1,4 +1,7 @@
 using System;
+using CaseStudy.Core.PlayerControl.Runtime;
+using CaseStudy.Feature.AbilitySystem.Contracts;
+using CaseStudy.Feature.AbilitySystem.Input;
 using CaseStudy.Feature.Animation.Data;
 using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using CaseStudy.Shared.AbilitySystem.Events.Presentation;
@@ -29,6 +32,7 @@ namespace CaseStudy.Feature.Animation.Runtime
         [SerializeField] private PlayerAnimationConfigSO _config;
         
         private ISubscriber<AbilityTriggeredEvent> _abilityTriggeredSubscriber;
+        private IAbilityInputGate _abilityInputGate;
         private ISubscriber<AbilityLoadoutSlotAssignedEvent> _loadoutSlotAssignedSubscriber;
         private IDisposable _abilityTriggeredSubscription;
         private IDisposable _loadoutSlotAssignedSubscription;
@@ -87,6 +91,7 @@ namespace CaseStudy.Feature.Animation.Runtime
 
             resolver.TryResolve<ISubscriber<AbilityTriggeredEvent>>(out _abilityTriggeredSubscriber);
             resolver.TryResolve<ISubscriber<AbilityLoadoutSlotAssignedEvent>>(out _loadoutSlotAssignedSubscriber);
+            resolver.TryResolve<IAbilityInputGate>(out _abilityInputGate);
         }
 
         private void Awake()
@@ -117,10 +122,12 @@ namespace CaseStudy.Feature.Animation.Runtime
 
             _lastAboveThresholdTime = -999f;
             EnsureRuntimeOverrideController();
+            EnsureInputGateReference();
         }
 
         private void OnEnable()
         {
+            EnsureInputGateReference();
             SubscribeAbilityEvents();
         }
 
@@ -131,6 +138,53 @@ namespace CaseStudy.Feature.Animation.Runtime
 
             _loadoutSlotAssignedSubscription?.Dispose();
             _loadoutSlotAssignedSubscription = null;
+
+            ResetMotionStateOnDisable();
+        }
+
+        private void ResetMotionStateOnDisable()
+        {
+            _cachedMoveX = 0f;
+            _cachedMoveY = 0f;
+            _cachedSpeed = 0f;
+            _cachedIsMoving = false;
+
+            _pendingAbilityUsedTrigger = false;
+            _hasPendingAbilityIndex = false;
+            _pendingAbilityAnimationSpeed = DEFAULT_ABILITY_SPEED;
+
+            _hasLastFixedWorldPosition = false;
+            _lastAboveThresholdTime = -999f;
+
+            _hasLastSentMoveX = false;
+            _hasLastSentMoveY = false;
+            _hasLastSentSpeed = false;
+            _hasLastSentIsMoving = false;
+
+            if (_ownerAnimator == null)
+            {
+                return;
+            }
+
+            if (_hasMoveX)
+            {
+                _ownerAnimator.SetFloat(_moveXHash, 0f);
+            }
+
+            if (_hasMoveY)
+            {
+                _ownerAnimator.SetFloat(_moveYHash, 0f);
+            }
+
+            if (_hasSpeed)
+            {
+                _ownerAnimator.SetFloat(_speedHash, 0f);
+            }
+
+            if (_hasIsMoving)
+            {
+                _ownerAnimator.SetBool(_isMovingHash, false);
+            }
         }
 
         private void FixedUpdate()
@@ -181,6 +235,31 @@ namespace CaseStudy.Feature.Animation.Runtime
             ConsumeAbilitySignals();
         }
 
+        private void EnsureInputGateReference()
+        {
+            if (_abilityInputGate != null)
+            {
+                return;
+            }
+
+            PlayerControlState controlState = GetComponentInParent<PlayerControlState>();
+            if (controlState != null)
+            {
+                AbilityInputGateway gateway = controlState.GetComponentInChildren<AbilityInputGateway>(true);
+                if (gateway != null)
+                {
+                    _abilityInputGate = gateway;
+                    return;
+                }
+            }
+
+            AbilityInputGateway localGateway = GetComponentInChildren<AbilityInputGateway>(true);
+            if (localGateway != null)
+            {
+                _abilityInputGate = localGateway;
+            }
+        }
+
         private void SubscribeAbilityEvents()
         {
             _abilityTriggeredSubscription?.Dispose();
@@ -202,6 +281,10 @@ namespace CaseStudy.Feature.Animation.Runtime
 
         private void OnAbilityTriggered(AbilityTriggeredEvent evt)
         {
+            if (_abilityInputGate != null && !_abilityInputGate.IsInputGateOpen)
+            {
+                return;
+            }
             if (_hasAbilityUsedTrigger)
             {
                 _pendingAbilityUsedTrigger = true;
@@ -221,6 +304,10 @@ namespace CaseStudy.Feature.Animation.Runtime
 
         private void OnLoadoutSlotAssigned(AbilityLoadoutSlotAssignedEvent evt)
         {
+            if (_abilityInputGate != null && !_abilityInputGate.IsInputGateOpen)
+            {
+                return;
+            }
             if (evt.SlotIndex < 0)
             {
                 return;
@@ -427,6 +514,12 @@ namespace CaseStudy.Feature.Animation.Runtime
         }
     }
 }
+
+
+
+
+
+
 
 
 

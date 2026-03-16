@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using MessagePipe;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace CaseStudy.Feature.AbilitySystem.Input
     /// Publishes trigger requests from Input System actions.
     /// Input list order defines slot index.
     /// </summary>
-    public sealed class AbilityInputGateway : MonoBehaviour
+    public sealed class AbilityInputGateway : MonoBehaviour, IAbilityInputGate
     {
         private readonly struct RegisteredBinding
         {
@@ -31,6 +32,29 @@ namespace CaseStudy.Feature.AbilitySystem.Input
 
         private readonly List<RegisteredBinding> _registeredBindings = new(4);
         private IPublisher<AbilityTriggerRequestedEvent> _triggerPublisher;
+
+        public bool IsInputGateOpen
+        {
+            get
+            {
+                if (!isActiveAndEnabled || _actions == null)
+                {
+                    return false;
+                }
+
+                int count = _actions.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    InputActionReference actionReference = _actions[i];
+                    if (actionReference != null && actionReference.action != null && actionReference.action.enabled)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
 
         [Inject]
         public void Construct(IPublisher<AbilityTriggerRequestedEvent> triggerPublisher)
@@ -97,7 +121,7 @@ namespace CaseStudy.Feature.AbilitySystem.Input
 
         private void Publish(int slotIndex)
         {
-            if (_triggerPublisher == null || slotIndex < 0)
+            if (_triggerPublisher == null || slotIndex < 0 || !IsInputGateOpen)
             {
                 return;
             }
@@ -106,5 +130,3 @@ namespace CaseStudy.Feature.AbilitySystem.Input
         }
     }
 }
-
-

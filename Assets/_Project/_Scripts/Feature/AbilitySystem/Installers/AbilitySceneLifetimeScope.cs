@@ -1,5 +1,4 @@
-﻿using CaseStudy.Feature.AbilitySystem.Input;
-using CaseStudy.Feature.AbilitySystem.UI;
+﻿using CaseStudy.Feature.AbilitySystem.UI;
 using VContainer;
 using VContainer.Unity;
 
@@ -13,7 +12,6 @@ namespace CaseStudy.Feature.AbilitySystem.Installers
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            builder.RegisterComponentInHierarchy<AbilityInputGateway>();
             builder.RegisterComponentInHierarchy<AbilityHudPresenter>();
         }
     }

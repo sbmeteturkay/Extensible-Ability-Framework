@@ -22,6 +22,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         private readonly IAbilityFactory _abilityFactory;
         private readonly ICooldownService _cooldownService;
         private readonly IEnergyService _energyService;
+        private readonly IAbilityInputGate _abilityInputGate;
         private readonly ISubscriber<AbilityTriggerRequestedEvent> _triggerSubscriber;
         private readonly IPublisher<AbilityTriggeredEvent> _triggeredPublisher;
         private readonly IPublisher<AbilityExecutionFailedEvent> _executionFailedPublisher;
@@ -40,6 +41,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             IAbilityFactory abilityFactory,
             ICooldownService cooldownService,
             IEnergyService energyService,
+            IAbilityInputGate abilityInputGate,
             ISubscriber<AbilityTriggerRequestedEvent> triggerSubscriber,
             IPublisher<AbilityTriggeredEvent> triggeredPublisher,
             IPublisher<AbilityExecutionFailedEvent> executionFailedPublisher,
@@ -48,6 +50,7 @@ namespace CaseStudy.Feature.AbilitySystem.Services
             _abilityFactory = abilityFactory;
             _cooldownService = cooldownService;
             _energyService = energyService;
+            _abilityInputGate = abilityInputGate;
             _triggerSubscriber = triggerSubscriber;
             _triggeredPublisher = triggeredPublisher;
             _executionFailedPublisher = executionFailedPublisher;
@@ -231,6 +234,11 @@ namespace CaseStudy.Feature.AbilitySystem.Services
 
         private void OnTriggerRequested(AbilityTriggerRequestedEvent evt)
         {
+            if (_abilityInputGate != null && !_abilityInputGate.IsInputGateOpen)
+            {
+                return;
+            }
+
             TryTrigger(evt.SlotIndex);
         }
 
@@ -526,5 +534,3 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         }
     }
 }
-
-

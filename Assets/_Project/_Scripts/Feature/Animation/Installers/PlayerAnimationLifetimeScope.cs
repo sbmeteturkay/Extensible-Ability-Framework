@@ -1,4 +1,5 @@
-﻿using CaseStudy.Feature.Animation.Runtime;
+using CaseStudy.Feature.Animation.Runtime;
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
@@ -11,7 +12,13 @@ namespace CaseStudy.Feature.Animation.Installers
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            builder.RegisterComponentInHierarchy<PlayerAnimationDriver>();
+            if (!TryGetComponent(out PlayerAnimationDriver playerAnimationDriver))
+            {
+                Debug.LogWarning("PlayerAnimationLifetimeScope: PlayerAnimationDriver is missing on scope object.", this);
+                return;
+            }
+            builder.RegisterComponent(playerAnimationDriver);
         }
     }
 }
+

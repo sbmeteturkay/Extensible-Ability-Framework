@@ -1,0 +1,114 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-3975271225896418359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 563dc5914a0ce2742b0986c9e6a02f7a, type: 3}
+  m_Name: AbilityHitFeedbackModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityHitFeedbackModuleSO
+  _order: 0
+  _impactVfxPrefab: {fileID: 4535006216103734310, guid: 98c4704d0fd7211449bcf5c451095a60, type: 3}
+  _impactVfxDelaySeconds: 0
+  _impactVfxAutoReturnSeconds: 2
+  _impactSfx: {fileID: 8300000, guid: 29bde6326b4c34ad8a12da475f79b50a, type: 3}
+  _impactSfxVolume: 1
+--- !u!114 &-2686490633834295206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80ef1617cfe4be544ae845bc75823e99, type: 3}
+  m_Name: TargetHitVisualModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.TargetHitVisualModuleSO
+  _order: 0
+  _targetHitVisualProfile: {fileID: 11400000, guid: 669551f9f889b59418f0917dcde913af, type: 2}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da2381e2822648a48b0bd92c566a5baf, type: 3}
+  m_Name: SO_Ability_Pico_Projectile
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityDataSO
+  _abilityKey: ebb4dc5a6fcb0084e9f9762c3baaa18d
+  _displayName: New Ability
+  _icon: {fileID: 21300000, guid: 77d7018450196774a99cc2be5ed47a3f, type: 3}
+  _cooldownSeconds: 1
+  _energyCost: 30
+  _targetGroups: 5
+  _movementPolicy: 0
+  _minimumMovementLockDurationSeconds: 0
+  _executor: {fileID: 11400000, guid: e14fbcb629aa6da46b393a02ae864f45, type: 2}
+  _mechanicConfig: {fileID: 1378872218464300298}
+  _optionalModules:
+  - {fileID: 8160812057409128935}
+  - {fileID: -3975271225896418359}
+  - {fileID: -2686490633834295206}
+  - {fileID: 8613812472160194584}
+--- !u!114 &1378872218464300298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2b3378b588fe1b4290c8f5d2dedc4e2, type: 3}
+  m_Name: ProjectileAbilityModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.ProjectileAbilityModuleSO
+  _projectilePrefab: {fileID: 3256030433253130741, guid: b03fd5b7e836eea4f9f5ca7335a281e0, type: 3}
+  _maxPoolSize: -1
+  _projectileSpeed: 7
+  _maxLifeTimeSeconds: 2
+  _hitRadius: 0.1
+  _spawnForwardOffset: 0
+  _spawnHorizontalOffset: 0
+  _spawnVerticalOffset: 0.5
+  _aimMaxDistance: 60
+  _aimRayVerticalOffset: 1
+--- !u!114 &8160812057409128935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c5dd4d7b02c4a44b2ec731aae16ab3, type: 3}
+  m_Name: AbilityCastFeedbackModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityCastFeedbackModuleSO
+  _order: 0
+  _castVfxPrefab: {fileID: 0}
+  _castSfx: {fileID: 8300000, guid: 881e3f52c86c94f26a60718d35627cd8, type: 3}
+--- !u!114 &8613812472160194584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1173fe799f0e9e94c93e6d35a5790b40, type: 3}
+  m_Name: AbilityAnimationModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityAnimationModuleSO
+  _order: 0
+  _animationClip: {fileID: -203655887218126122, guid: 8364ea3f12c1dce47b8a581ffa99c2ef, type: 3}
+  _useCustomPlaybackSpeed: 1
+  _playbackSpeed: 2
