@@ -11,6 +11,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
     [CreateAssetMenu(fileName = "SO_Executor_Projectile", menuName = "Ability/Executors/Projectile Executor")]
     public sealed class ProjectileExecutorSO : AbilityExecutorSO, ITargetHitVisualConsumer
     {
+        private const float MIN_FORWARD_ALIGNMENT_DOT = 0.05f;
         public override Type RequiredMechanicConfigType => typeof(ProjectileMechanicConfigSO);
         private static readonly Dictionary<(int PrefabKey, int MaxPoolSize), ProjectilePool> PoolByKey = new();
 
@@ -210,7 +211,12 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 Vector3 directionToHit = hit.point - spawnPosition;
                 if (directionToHit.sqrMagnitude > 0.0001f)
                 {
-                    return directionToHit.normalized;
+                    Vector3 normalizedDirection = directionToHit.normalized;
+                    float forwardAlignment = Vector3.Dot(normalizedDirection, fallbackForward);
+                    if (forwardAlignment >= MIN_FORWARD_ALIGNMENT_DOT)
+                    {
+                        return normalizedDirection;
+                    }
                 }
             }
 
@@ -308,6 +314,3 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
-
-
-

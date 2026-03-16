@@ -12,6 +12,8 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
     public sealed class ProjectileRuntime : MonoBehaviour
     {
         private const float MIN_STEP_DISTANCE = 0.0001f;
+        private const float MIN_INITIAL_OVERLAP_RADIUS = 0.02f;
+        private static readonly Collider[] InitialOverlapBuffer = new Collider[16];
 
         private bool _isActive;
         private float _lifeTimeSeconds;
@@ -109,6 +111,50 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
             _releaseAction = releaseAction;
             _isActive = true;
             _elapsedSeconds = 0f;
+
+            if (TryResolveInitialOverlap(position, out Collider initialHitCollider, out Vector3 impactPoint))
+            {
+                TryApplyHitVisual(initialHitCollider);
+                SpawnTargetHitVfx(impactPoint);
+                SpawnImpactVfx(impactPoint);
+                SpawnImpactSfx(impactPoint);
+                ReturnToPool();
+            }
+        }
+
+        private bool TryResolveInitialOverlap(Vector3 position, out Collider hitCollider, out Vector3 impactPoint)
+        {
+            hitCollider = null;
+            impactPoint = position;
+
+            float probeRadius = Mathf.Max(_hitRadius, MIN_INITIAL_OVERLAP_RADIUS);
+            int hitCount = Physics.OverlapSphereNonAlloc(
+                position,
+                probeRadius,
+                InitialOverlapBuffer,
+                _hitLayers,
+                QueryTriggerInteraction.Ignore);
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                Collider candidate = InitialOverlapBuffer[i];
+                if (candidate == null)
+                {
+                    continue;
+                }
+
+                if (_ownerTransform != null && candidate.transform.IsChildOf(_ownerTransform))
+                {
+                    continue;
+                }
+
+                hitCollider = candidate;
+                Vector3 closestPoint = candidate.ClosestPoint(position);
+                impactPoint = (closestPoint - position).sqrMagnitude > 0.000001f ? closestPoint : position;
+                return true;
+            }
+
+            return false;
         }
 
         private bool TryHit(Vector3 origin, float distance, out RaycastHit hit)
@@ -219,4 +265,3 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         }
     }
 }
-
