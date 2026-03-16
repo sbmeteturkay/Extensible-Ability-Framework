@@ -111,4 +111,4 @@ MonoBehaviour:
   _order: 0
   _animationClip: {fileID: -203655887218126122, guid: 8364ea3f12c1dce47b8a581ffa99c2ef, type: 3}
   _useCustomPlaybackSpeed: 1
-  _playbackSpeed: 2.5
+  _playbackSpeed: 2

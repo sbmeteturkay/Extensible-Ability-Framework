@@ -21,4 +21,7 @@ MonoBehaviour:
   _enableBounce: 0
   _bounceHeight: 0.25
   _bounceDuration: 0.18
-  _hitVfxPrefab: {fileID: 1758473627833946668, guid: 9b21333b068a5084ba09535839bee3c8, type: 3}
+  _hitVisualDelaySeconds: 0
+  _hitVfxPrefab: {fileID: 0}
+  _hitVfxDelaySeconds: 0
+  _hitVfxAutoReturnSeconds: 2

@@ -145,7 +145,7 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
 
             if (receiverComponent is IAbilityHitVisualReceiver visualReceiver)
             {
-                visualReceiver.ApplyHitVisual(_targetHitVisualProfile);
+                visualReceiver.ApplyVisual(new AbilityVisualCommand(AbilityVisualKind.Hit, _targetHitVisualProfile, 0f));
             }
         }
 
@@ -219,3 +219,4 @@ namespace CaseStudy.Feature.AbilitySystem.Abilities
         }
     }
 }
+

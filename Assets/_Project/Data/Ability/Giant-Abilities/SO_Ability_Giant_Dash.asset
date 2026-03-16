@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: AbilityCastFeedbackModuleSO
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityCastFeedbackModuleSO
   _order: 0
-  _castVfxPrefab: {fileID: 4809171458859421548, guid: 4e91ed1a8efe7044785b9bd97a47d87f, type: 3}
+  _castVfxPrefab: {fileID: 0}
   _castSfx: {fileID: 8300000, guid: cabfae866cab347928b74b7d0ca6bfa9, type: 3}
 --- !u!114 &11400000
 MonoBehaviour:

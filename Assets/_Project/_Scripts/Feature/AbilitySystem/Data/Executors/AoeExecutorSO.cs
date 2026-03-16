@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Domain;
@@ -50,6 +50,11 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                 targetLayers,
                 QueryTriggerInteraction.Collide);
 
+            var aoeVisualCommand = new AbilityVisualCommand(
+                AbilityVisualKind.Aoe,
+                parameters.TargetHitVisualProfile,
+                parameters.EffectDurationSeconds);
+
             for (int i = 0; i < hitCount; i++)
             {
                 Collider hitCollider = _overlapBuffer[i];
@@ -58,13 +63,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
                     continue;
                 }
 
-                Component effectComponent = hitCollider.GetComponent(typeof(IAoeEffectReceiver)) as Component;
-                if (effectComponent is IAoeEffectReceiver effectReceiver)
-                {
-                    effectReceiver.ApplyAoeEffect(parameters.EffectDurationSeconds);
-                }
-
-                TryApplyHitVisual(hitCollider, parameters.TargetHitVisualProfile);
+                TryApplyVisual(hitCollider, aoeVisualCommand);
                 TrySpawnTargetHitVfx(context.PooledVfxService, hitCollider, parameters.TargetHitVisualProfile);
             }
 
@@ -144,9 +143,9 @@ namespace CaseStudy.Feature.AbilitySystem.Data
             return parameters.Radius > 0f && parameters.MaxTargets > 0;
         }
 
-        private static void TryApplyHitVisual(Collider hitCollider, HitVisualProfileSO visualProfile)
+        private static void TryApplyVisual(Collider hitCollider, AbilityVisualCommand command)
         {
-            if (hitCollider == null || visualProfile == null)
+            if (hitCollider == null)
             {
                 return;
             }
@@ -159,7 +158,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
             if (visualComponent is IAbilityHitVisualReceiver visualReceiver)
             {
-                visualReceiver.ApplyHitVisual(visualProfile);
+                visualReceiver.ApplyVisual(command);
             }
         }
 
@@ -225,4 +224,3 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
-

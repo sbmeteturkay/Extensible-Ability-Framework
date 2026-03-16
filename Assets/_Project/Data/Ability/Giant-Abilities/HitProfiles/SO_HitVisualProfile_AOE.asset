@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 995c3438292a1084182316c635e5b34b, type: 3}
-  m_Name: SO_HitVisualProfile
+  m_Name: SO_HitVisualProfile_AOE
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.HitVisualProfileSO
   _enableColorFlash: 1
   _flashColor: {r: 1, g: 0.59284186, b: 0, a: 1}

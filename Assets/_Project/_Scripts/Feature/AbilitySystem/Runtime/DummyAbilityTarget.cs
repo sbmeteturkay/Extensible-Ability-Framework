@@ -7,14 +7,16 @@ using UnityEngine;
 namespace CaseStudy.Feature.AbilitySystem.Runtime
 {
     /// <summary>
-    /// Dummy receiver for case validation. Applies temporary hit visuals driven by ability profiles.
-    /// If a new hit arrives while an effect is active, current visuals are finalized and the new one starts.
+    /// Single demo receiver. Ability defines visual intent, receiver only executes incoming command.
     /// </summary>
-    public sealed class DummyAbilityTarget : MonoBehaviour, IAoeEffectReceiver, IAbilityHitVisualReceiver
+    public sealed class DummyAbilityTarget : MonoBehaviour, IAbilityHitVisualReceiver
     {
         [Header("References")]
         [SerializeField] private Renderer _targetRenderer;
         [SerializeField] private string _baseColorPropertyName = "_BaseColor";
+
+        [Header("AOE Fallback")]
+        [SerializeField, Min(1f)] private float _aoeScaleMultiplier = 1.05f;
 
         private MaterialPropertyBlock _propertyBlock;
         private Vector3 _baseScale;
@@ -30,6 +32,11 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             _propertyBlock = new MaterialPropertyBlock();
             _baseScale = transform.localScale;
             _baseLocalPosition = transform.localPosition;
+
+            if (_targetRenderer == null)
+            {
+                _targetRenderer = GetComponentInChildren<Renderer>();
+            }
 
             if (_targetRenderer != null)
             {
@@ -58,23 +65,60 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             FinalizeCurrentVisual();
         }
 
-        public void ApplyAoeEffect(float effectDurationSeconds)
+        public void ApplyVisual(AbilityVisualCommand command)
         {
-            // Dummy target intentionally has no gameplay effect. Visuals are profile-driven.
-        }
+            HitVisualProfileSO profile = command.Profile;
 
-        public void ApplyHitVisual(HitVisualProfileSO profile)
-        {
+            if (command.Kind == AbilityVisualKind.Aoe && profile == null)
+            {
+                if (command.DurationSeconds <= 0f)
+                {
+                    return;
+                }
+
+                FinalizeCurrentVisual();
+                PlayAoePulseAsync(command.DurationSeconds, _visualSequence).Forget();
+                return;
+            }
+
             if (profile == null)
             {
                 return;
             }
 
             FinalizeCurrentVisual();
-            PlayVisualAsync(profile, _visualSequence).Forget();
+            PlayHitVisualAsync(profile, _visualSequence).Forget();
         }
 
-        private async UniTaskVoid PlayVisualAsync(HitVisualProfileSO profile, uint sequence)
+        private async UniTaskVoid PlayAoePulseAsync(float durationSeconds, uint sequence)
+        {
+            float duration = Mathf.Max(0.05f, durationSeconds);
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                if (sequence != _visualSequence)
+                {
+                    return;
+                }
+
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float pulse = Mathf.Sin(t * Mathf.PI);
+
+                float scaleFactor = Mathf.Lerp(1f, _aoeScaleMultiplier, pulse);
+                transform.localScale = _baseScale * scaleFactor;
+
+                await UniTask.Yield(PlayerLoopTiming.Update);
+            }
+
+            if (sequence == _visualSequence)
+            {
+                ResetVisualState();
+            }
+        }
+
+        private async UniTaskVoid PlayHitVisualAsync(HitVisualProfileSO profile, uint sequence)
         {
             if (profile.HitVisualDelaySeconds > 0f)
             {
@@ -139,6 +183,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             {
                 _propertyBlock.SetColor(_fallbackColorPropertyId, blended);
             }
+
             _targetRenderer.SetPropertyBlock(_propertyBlock);
         }
 
@@ -172,7 +217,7 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             transform.localPosition = nextPosition;
         }
 
-        private float GetTotalDuration(HitVisualProfileSO profile)
+        private static float GetTotalDuration(HitVisualProfileSO profile)
         {
             float total = 0f;
 
@@ -219,8 +264,8 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
             {
                 _propertyBlock.SetColor(_fallbackColorPropertyId, _baseColor);
             }
+
             _targetRenderer.SetPropertyBlock(_propertyBlock);
         }
     }
 }
-
