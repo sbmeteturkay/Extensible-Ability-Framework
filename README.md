@@ -1,114 +1,176 @@
 # Extensible Ability Framework
 
-Extensible Ability Framework, Unity icinde modul bazli gameplay sistemleri kurmak icin hazirlanmis, feature-odakli bir ornek projedir.
-Merkezde data-driven bir ability pipeline bulunur; locomotion, animation, HUD ve feedback akislari ayni mimari ilkelere bagli kalacak sekilde ayrik tutulur.
+Extensible Ability Framework is a feature-oriented Unity sample project built around modular gameplay systems.
+At its core is a data-driven ability pipeline, while locomotion, animation, HUD, and feedback flows remain separated behind the same architectural rules.
 
-Bu repo, kod kalitesi kadar genisletilebilirlik, sorumluluk ayrimi ve yeniden kullanilabilir authoring akisini gostermeyi hedefler.
+This repository is intended to demonstrate extensibility, clean responsibility boundaries, and a production-minded authoring workflow.
+The README focuses on the project-level architectural decisions and design patterns that shaped the implementation.
 
 ## Overview
 
-Projede odaklanan ana basliklar:
+Core focus areas of the project:
 
 - Data-driven ability authoring
-- Feature-based klasorleme ve scope ayrimi
-- DI tabanli runtime composition
-- Event-driven feature iletisimi
-- Mobil dostu pooling ve allocation farkindaligi
-- Yeni ability varyanti eklerken mevcut runtime koduna minimum temas
+- Feature-based folder and scope separation
+- Dependency-injected runtime composition
+- Event-driven communication between features
+- Mobile-conscious pooling and allocation control
+- Minimal runtime code changes when adding new ability variants
 
 ## Highlights
 
-- Tek bir `AbilityDataSO` uzerinden ability authoring
-- Dash, Projectile ve AOE icin ayri executor katmani
-- Ortak enerji/cooldown sistemi ve HUD entegrasyonu
-- Hit visual feedback akisi: flash, scale, bounce, hit vfx
-- Projectile ve VFX icin pool tabanli spawn sistemi
-- Player locomotion lock ve animation entegrasyonu
-- Foldable inspector ve validation destekli authoring akisi
+- Single-entry ability authoring through `AbilityDataSO`
+- Dedicated executors for Dash, Projectile, and AOE mechanics
+- Shared energy and cooldown flow with HUD integration
+- Hit feedback pipeline: flash, scale, bounce, and hit VFX
+- Pool-based spawning for projectiles and visual effects
+- Player locomotion lock and animation integration
+- Foldable inspector workflow with built-in validation
 
 ## Architecture Snapshot
 
-Bu proje, klasik "tek scriptte tum gameplay" yaklasimi yerine sorumluluklari feature bazinda ayirir:
+Instead of concentrating gameplay logic inside a few large scripts, the project separates responsibilities by feature:
 
 - `Ability System`
-  - Tetikleme, validation, cooldown, energy, execution, feedback
+  - Triggering, validation, cooldown, energy, execution, and feedback
 - `Locomotion`
-  - Rigidbody tabanli hareket, donus, dead-zone, lock kontrolu
+  - Rigidbody-based movement, turning, dead-zone handling, and lock control
 - `Animation`
-  - Hareket verisinin animator parametrelerine stabil aktarimi
+  - Stable transfer of motion data into animator parameters
 - `Shared`
-  - Pooling, event kontratlari ve ortak servisler
+  - Pooling, event contracts, and common services
 
-Runtime baglantilari `VContainer` ile kurulur, feature'lar arasi haberlesme ise `MessagePipe` event'leri ile yapilir.
+Runtime composition is handled with `VContainer`, while cross-feature communication is routed through `MessagePipe` events.
 
 ## Why This Structure
 
-Bu yapida hedeflenen sey sadece calisan bir demo degil, yeni gereksinim geldiginde kirilmadan buyuyebilen bir temel sunmaktir.
+The goal was not only to build a working demo, but to establish a foundation that can grow without turning into a tightly coupled gameplay script cluster.
 
-Ornek olarak:
+In practice this means:
 
-- Yeni bir ability varyanti icin cogunlukla yeni asset yeterlidir.
-- Yeni bir mekanik gerekiyorsa yeni `executor` ve gerekliyse yeni module tanimlanir.
-- HUD, animation ve runtime execution dogrudan birbirine baglanmaz; event kontratlari uzerinden haberlesir.
+- A new ability variant should usually be introduced by creating a new asset.
+- A new mechanic should require a new `executor`, and only when necessary a new module.
+- HUD, animation, and runtime execution should not depend on each other directly; they communicate through explicit contracts.
 
-Bu sayede hem authoring akisinda hem de kod bakiminda daha kontrollu bir yapi elde edilir.
+This keeps both the authoring workflow and long-term maintenance more predictable.
+
+## Architectural Decisions
+
+- `Feature-based structure` was chosen so ability, locomotion, and animation can evolve independently, reducing the chance that a change in one area breaks another.
+- `Dependency Injection (VContainer)` was used to keep scene-side UI/input wiring and player-prefab runtime systems explicitly composed instead of relying on hidden dependencies.
+- `Event-driven communication (MessagePipe)` was preferred so HUD, animation, input, and execution layers stay loosely coupled while still reacting to the same runtime state.
+- `Data-driven authoring` was adopted so most new ability variants can be added as content, while runtime code is only extended when a genuinely new mechanic is introduced.
+- `Object pooling` was treated as a baseline requirement to avoid repeated instantiate/destroy cycles for projectiles and VFX, especially with mobile performance in mind.
+- `Single asset ability authoring` was selected so mechanic config and optional modules live under the same `AbilityDataSO`, reducing authoring friction and keeping asset-level changes easier to review.
+
+## Design Patterns
+
+- `Strategy`: each ability's core behavior is defined by the selected `AbilityExecutorSO`, allowing Dash, Projectile, and AOE mechanics to share the same runtime pipeline.
+- `Factory`: `AbilityFactory` centralizes runtime `IAbility` creation so instantiation rules do not leak into loadout or bootstrap code.
+- `Observer / Pub-Sub`: cooldown, energy, trigger, and loadout updates are broadcast through events, allowing UI, animation, and gameplay systems to stay synchronized without direct references.
+- `Template / Hook`: the optional module model injects behavior into `before/after execute` stages, making it possible to extend execution with SFX, VFX, or policy logic without rewriting the main flow.
+- `Object Pool`: projectile and VFX instances are reused through shared pooling infrastructure to keep runtime allocation pressure low.
+
+## Creating a New Ability
+
+One of the main goals of the project is to make new ability creation predictable.
+The intended workflow is:
+
+1. Create a new `AbilityDataSO`.
+2. Select an `AbilityExecutorSO` based on the mechanic type.
+3. Create the required `AbilityMechanicConfigSO` sub-asset for that executor.
+4. Add optional modules only for non-essential extensions such as feedback or auxiliary policies.
+5. Add the ability to the loadout and let the existing runtime pipeline handle triggering, validation, execution, cooldown, energy, HUD, and animation events.
+
+This separation is intentional:
+
+- `Executor` defines the core mechanic.
+- `MechanicConfig` stores the executor-specific required data.
+- `Optional Modules` add behavior that should remain optional and composable.
+
+As a rule of thumb:
+
+- `New content variant`: create a new `AbilityDataSO`
+- `New mechanic`: create a new executor and mechanic config
+- `New optional behavior`: create a new module
+
+```mermaid
+flowchart LR
+    A["Create AbilityDataSO"] --> B["Choose Executor"]
+    B --> C["Create MechanicConfig"]
+    C --> D["Add Optional Modules (if needed)"]
+    D --> E["Assign to Loadout"]
+    E --> F["Existing Runtime Pipeline"]
+
+    F --> F1["Validation"]
+    F --> F2["Execution"]
+    F --> F3["Cooldown / Energy"]
+    F --> F4["HUD / Animation Events"]
+```
 
 ## Current Feature Set
 
 ### Ability System
 
-- `AbilityDataSO` merkezli authoring modeli
-- `Executor + MechanicConfig + OptionalModule` ayrimi
-- Slot sirasina dayali loadout ve HUD eslesmesi
-- Shared energy ve cooldown state
-- Domain ve presentation event ayrimi
+- `AbilityDataSO`-centered authoring model
+- `Executor + MechanicConfig + OptionalModule` separation
+- Loadout-to-HUD mapping based on slot order
+- Shared energy and cooldown state
+- Domain and presentation event separation
 
-Detayli teknik dokuman:
+Detailed documentation:
 - [Ability System Docs](Docs/Features/AbilitySystem.md)
+- [Ability System Docs (TR)](Docs/Features/AbilitySystem.tr.md)
 
 ### Locomotion
 
-- Rigidbody tabanli hareket
-- Input cache + fixed tick akisi
-- Ability kaynakli movement lock entegrasyonu
+- Rigidbody-based movement
+- Cached input and fixed-tick execution
+- Ability-driven movement lock integration
 
-Detayli teknik dokuman:
+Detailed documentation:
 - [Locomotion Docs](Docs/Features/Locomotion.md)
+- [Locomotion Docs (TR)](Docs/Features/Locomotion.tr.md)
 
 ### Animation
 
-- Stabil hareket parametre aktarimi
-- Ability trigger/index/speed animator entegrasyonu
-- Loadout slotlarina gore clip override akisi
+- Stable movement parameter updates
+- Animator integration for ability trigger, slot index, and playback speed
+- Clip override flow based on loadout slots
 
-Detayli teknik dokuman:
+Detailed documentation:
 - [Animation Docs](Docs/Features/Animation.md)
+- [Animation Docs (TR)](Docs/Features/Animation.tr.md)
 
 ## Technical Documentation
 
-Sunum odakli bu README'ye ek olarak daha ayrintili teknik referanslar repo icinde tutulur:
+In addition to this presentation-oriented README, the repository includes more detailed technical references:
 
+- [Turkish README](README.tr.md)
 - [Technical README](TECHNICAL_README.md)
 - [Ability Feature Scope](Docs/AbilityFeatureScope.md)
 - [Ability System Docs](Docs/Features/AbilitySystem.md)
+- [Ability System Docs (TR)](Docs/Features/AbilitySystem.tr.md)
 - [Locomotion Docs](Docs/Features/Locomotion.md)
+- [Locomotion Docs (TR)](Docs/Features/Locomotion.tr.md)
 - [Animation Docs](Docs/Features/Animation.md)
+- [Animation Docs (TR)](Docs/Features/Animation.tr.md)
 - [Smoke Checklist](Docs/SmokeChecklist.md)
 
 ## Project Structure
 
-Ana klasorleme mantigi:
+Top-level structure:
 
 - `Assets/_Project/_Scripts/Core`
-  - Ortak kurulum ve root composition
+  - Root composition and shared setup
 - `Assets/_Project/_Scripts/Feature`
-  - Ability, Locomotion, Animation gibi oyun feature'lari
+  - Gameplay features such as Ability, Locomotion, and Animation
 - `Assets/_Project/_Scripts/Shared`
-  - Birden fazla feature tarafindan kullanilan ortak altyapi
+  - Infrastructure used by more than one feature
 - `Assets/_Project/Data`
-  - Authoring asset'leri
+  - Authoring assets
 
-Bu yapi, feature kodunu ve ortak altyapiyi birbirinden ayirarak repo icinde gezinmeyi kolaylastirir.
+This structure keeps feature code and shared infrastructure separate, making the repository easier to navigate and extend.
 
 ```mermaid
 flowchart TD
@@ -133,18 +195,18 @@ flowchart TD
     Shared --> SharedNodes["Events / Interfaces / Services / Extensions"]
 ```
 
-Daha detayli yapi diyagrami:
+For a more detailed structure diagram:
 - [Project Structure Docs](Docs/ProjectStructure.md)
 
 ## Running The Project
 
-1. Unity Hub ile projeyi `6000.3.8f1` surumunde acin.
-2. `Assets/_Project/Scenes/Gameplay.unity` sahnesini yukleyin.
-3. Scene ve player altindaki scope hiyerarsisinin aktif oldugunu dogrulayin.
-4. Play mode'da ability, HUD, locomotion ve animation akisini test edin.
+1. Open the project in Unity Hub with version `6000.3.8f1`.
+2. Load `Assets/_Project/Scenes/Gameplay.unity`.
+3. Verify that the scene and player scope hierarchy is active.
+4. Enter Play Mode and test the ability, HUD, locomotion, and animation flow.
 
 ## Notes
 
-- Proje, teknik degerlendirme odakli bir gameplay framework ornegidir; tam oyun icerigi hedeflemez.
-- Teknik kararlarin ayrintili gerekceleri `TECHNICAL_README.md` dosyasinda tutulur.
-- Manuel test odakli ilerlenmistir; hizli dogrulama adimlari `Docs/SmokeChecklist.md` icindedir.
+- This repository is a technical gameplay framework sample rather than a content-complete game.
+- More detailed rationale behind the implementation is documented in `TECHNICAL_README.md`.
+- Validation has been primarily manual; fast verification steps are listed in `Docs/SmokeChecklist.md`.

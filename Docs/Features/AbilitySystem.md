@@ -1,63 +1,63 @@
 # Ability System Feature
 
-## 1. Amac
+## 1. Purpose
 
-Ability feature, `input -> validate -> execute -> feedback` zincirini data-driven sekilde yonetir.
-Ana hedef, yeni ability icerigini mevcut runtime kodunu degistirmeden asset uzerinden uretebilmektir.
+The Ability feature manages the `input -> validate -> execute -> feedback` chain in a data-driven way.
+Its main goal is to allow new ability content to be authored through assets without requiring changes to the existing runtime flow.
 
-## 2. Scope Siniri
+## 2. Scope Boundary
 
-Feature'in sorumlulugu:
-- Ability tetikleme ve yurutme orkestrasyonu
-- Cooldown ve enerji yonetimi
-- Executor + module pipeline
-- HUD ve animation'a event ile veri aktarma
+Responsibilities of this feature:
+- Ability triggering and execution orchestration
+- Cooldown and energy management
+- Executor and optional module pipeline
+- Event-based data flow to HUD and animation
 
-Feature disinda kalanlar:
-- Temel player hareket sistemi (Locomotion feature)
-- Animator state machine tasarimi (Animation feature)
+Out of scope:
+- Core player movement system (Locomotion feature)
+- Animator state machine design (Animation feature)
 
-## 3. Runtime Mimarisi
+## 3. Runtime Architecture
 
-Temel runtime siniflari:
+Core runtime classes:
 - `AbilityRuntimeBootstrap`
 - `AbilityController`
 - `AbilityFactory`
 - `CooldownService`
 - `EnergyService`
 
-Scope dagilimi:
-- `AbilitySceneLifetimeScope`: input ve HUD tarafini baglar
-- `AbilityPlayerLifetimeScope`: loadout, runtime servisleri ve execution tarafini barindirir
+Scope split:
+- `AbilitySceneLifetimeScope`: wires scene-side input and HUD
+- `AbilityPlayerLifetimeScope`: owns loadout, runtime services, and execution flow
 
-Calisma akisi:
-1. Input/HUD `AbilityTriggerRequestedEvent` publish eder.
-2. `AbilityController` slottan `AbilityDataSO` cozer.
-3. Validation + before-trigger module hook'lari calisir.
-4. Cooldown/energy/execution gate kontrolleri calisir.
-5. Executor `ExecuteAsync` calisir.
-6. Cooldown/energy/trigger eventleri publish edilir.
-7. After-execute module hook'lari calisir.
+Runtime flow:
+1. Input or HUD publishes `AbilityTriggerRequestedEvent`.
+2. `AbilityController` resolves the target `AbilityDataSO` from the slot.
+3. Validation and before-trigger module hooks are executed.
+4. Cooldown, energy, and execution gates are evaluated.
+5. The selected executor runs `ExecuteAsync`.
+6. Cooldown, energy, and trigger events are published.
+7. After-execute module hooks are executed.
 
-## 4. Data Kontrati
+## 4. Data Contract
 
-Tek ana asset: `AbilityDataSO`
-- Common: cooldown, energy, target groups, movement policy, icon
-- Zorunlu: `AbilityExecutorSO`, `AbilityMechanicConfigSO`
-- Opsiyonel: `List<AbilityOptionalModuleSO>`
-- Kimlik: `AbilityKey` (asset GUID, otomatik)
+Single root asset: `AbilityDataSO`
+- Common fields: cooldown, energy cost, target groups, movement policy, icon
+- Required references: `AbilityExecutorSO`, `AbilityMechanicConfigSO`
+- Optional extensions: `List<AbilityOptionalModuleSO>`
+- Identity: `AbilityKey` (auto-generated from the asset GUID)
 
-Authoring ilkesi:
-- Yeni icerik varyanti: yeni `AbilityDataSO`
-- Yeni mekanik turu: yeni `AbilityExecutorSO` + yeni `AbilityMechanicConfigSO`
-- Yeni opsiyonel davranis/feedback: yeni `AbilityOptionalModuleSO`
+Authoring rules:
+- New content variant: create a new `AbilityDataSO`
+- New mechanic type: create a new `AbilityExecutorSO` and `AbilityMechanicConfigSO`
+- New optional behavior or feedback: create a new `AbilityOptionalModuleSO`
 
-Mevcut executorlar:
+Current executors:
 - `DashExecutorSO`
 - `ProjectileExecutorSO`
 - `AoeExecutorSO`
 
-## 5. Event Kontrati
+## 5. Event Contract
 
 Domain events (`CaseStudy.Shared.AbilitySystem.Events.Domain`):
 - `AbilityTriggerRequestedEvent`
@@ -72,58 +72,60 @@ Domain events (`CaseStudy.Shared.AbilitySystem.Events.Domain`):
 Presentation events (`CaseStudy.Shared.AbilitySystem.Events.Presentation`):
 - `AbilityLoadoutSlotAssignedEvent`
 
-## 6. Authoring Akisi
+## 6. Authoring Workflow
 
-Kod yazmadan yeni ability varyanti:
-1. `AbilityDataSO` olustur.
-2. Executor referansi ata.
-3. Executor'un istedigi `MechanicConfig` subasset'ini olustur.
-4. Gerekli optional module'leri ekle.
-5. `AbilityLoadoutSO` listesine ekle.
+Adding a new ability variant without writing code:
+1. Create an `AbilityDataSO`.
+2. Assign the executor reference.
+3. Create the mechanic config sub-asset required by that executor.
+4. Add any optional modules.
+5. Add the ability to `AbilityLoadoutSO`.
 
-Yeni mekanik turu:
-1. `AbilityMechanicConfigSO` turevi yaz.
-2. `AbilityExecutorSO` turevi yaz.
-3. `TryValidate` ve `ExecuteAsync` uygula.
+Adding a new mechanic type:
+1. Create a new `AbilityMechanicConfigSO` derivative.
+2. Create a new `AbilityExecutorSO` derivative.
+3. Implement `TryValidate` and `ExecuteAsync`.
 
-Yeni opsiyonel davranis:
-1. `AbilityOptionalModuleSO` turevi yaz.
-2. Gerekli hook asamalarini uygula.
-3. Ability asset'ine module olarak ekle.
+Adding a new optional behavior:
+1. Create a new `AbilityOptionalModuleSO` derivative.
+2. Implement the required hook stages.
+3. Add the module to the ability asset.
 
-## 7. Son Guncellemeler
+## 7. Current Implementation Notes
 
-- Event yapisi Domain/Presentation olarak ayrildi.
-- Dash executor sweep tabanli collision check kullaniyor.
-- `DashMechanicConfigSO` icinde `EnableDebugTelemetry` mevcut.
-- `AbilityDataSOEditor` foldable bolumler + validation panel ile calisiyor.
+- Event contracts are split into Domain and Presentation layers.
+- Dash uses shape-cast-based collision checks.
+- `DashMechanicConfigSO` includes `EnableDebugTelemetry`.
+- `AbilityDataSOEditor` uses foldable sections and a validation panel.
+- The interaction demo is intentionally kept simple with a single receiver (`DummyAbilityTarget`).
+- Visual intent is decided by the ability layer through `AbilityVisualCommand`; the receiver only applies it.
 
-## 8. Manuel Test Checklist
+## 8. Manual Test Checklist
 
-- Slot tetikleme (input + HUD)
-- Cooldown baslatma/update/bitis
-- Ortak enerji slider davranisi
-- Dash engelde kesilme
-- Projectile spawn/impact pooling
-- AOE hit delay + hit visual
-- Animator trigger/index/speed aktarimi
+- Slot triggering from input and HUD
+- Cooldown start, update, and completion flow
+- Shared energy slider behavior
+- Dash stopping correctly against obstacles
+- Projectile spawn and impact pooling
+- AOE hit delay and hit feedback timing
+- Animator trigger, slot index, and playback speed updates
 
-## 9. Entegrasyon Noktalari
+## 9. Integration Points
 
-- Input:
+- Input
   - `AbilityTriggerRequestedEvent`
-- HUD:
-  - cooldown/energy ve slot assignment event akisi
-- Locomotion:
+- HUD
+  - Cooldown, energy, and slot-assignment event flow
+- Locomotion
   - `ILocomotionLockService`
-- Animation:
+- Animation
   - `AbilityTriggeredEvent`
-- Shared:
+- Shared
   - MessagePipe event broker
-  - pooled VFX servisi
+  - Pooled VFX service
 
-## 10. Trade-off
+## 10. Trade-Offs
 
-- Otomatik test kapsami sinirli; manuel smoke agirlikli.
-- Module pipeline sade tutuldu; daha zengin chain sonraki faz.
-- Energy regen sabit (`10/s`) ve configlesmedirilmadi.
+- Automated test coverage is limited; validation is primarily manual and smoke-oriented.
+- The module pipeline is intentionally lightweight; a richer chained model is left for a future phase.
+- Energy regeneration is fixed at `10/s` and is not yet externalized into a dedicated config asset.

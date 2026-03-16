@@ -1,71 +1,71 @@
 # Locomotion Feature
 
-## 1. Amac
+## 1. Purpose
 
-Locomotion feature, player hareket ve donusunu fizik pipeline ile uyumlu bicimde yonetir.
-Ability lock durumunu merkezi servisten okuyarak hareketi bloke edebilir.
+The Locomotion feature manages player movement and turning in a way that stays aligned with the physics pipeline.
+It can block movement by reading the current lock state from a shared locomotion lock service.
 
-## 2. Scope Siniri
+## 2. Scope Boundary
 
-Feature'in sorumlulugu:
-- Move input'u okumak ve cache'lemek
-- Rigidbody tabanli movement + rotation uygulamak
-- Dead zone ve lock kontrolu
+Responsibilities of this feature:
+- Reading and caching move input
+- Applying Rigidbody-based movement and rotation
+- Handling dead zone filtering and movement lock checks
 
-Feature disinda kalanlar:
-- Ability davranislari
-- Animator state kararlari
+Out of scope:
+- Ability behavior
+- Animator state decisions
 
-## 3. Runtime Bilesenleri
+## 3. Runtime Components
 
 - `LocomotionInputGateway` (`ILocomotionInputReader`)
 - `LocomotionRuntimeBootstrap`
 - `LocomotionController` (`ILocomotionController`, `IFixedTickable`)
 - `LocomotionDataSO`
 
-Bagimlilik:
+Dependency:
 - `LocomotionController` -> `ILocomotionLockService` (shared)
 
-## 4. Calisma Akisi
+## 4. Runtime Flow
 
-1. Gateway input vector'u cache'ler.
-2. Controller `FixedTick`'te input'u okur.
-3. Dead zone altinda erken cikis yapar.
-4. Lock aciksa erken cikis yapar.
-5. Yon normalize edilir.
-6. `MovePosition` ve `MoveRotation` uygulanir.
+1. The gateway caches the latest input vector.
+2. The controller reads input during `FixedTick`.
+3. It exits early when input stays below the dead zone.
+4. It exits early when locomotion is locked.
+5. The movement direction is normalized.
+6. `MovePosition` and `MoveRotation` are applied.
 
-## 5. Data Kontrati
+## 5. Data Contract
 
-`LocomotionDataSO` alanlari:
+`LocomotionDataSO` fields:
 - `MoveSpeed`
 - `RotationSpeedDegreesPerSecond`
 - `InputDeadZone`
 
-## 6. Entegrasyon Noktalari
+## 6. Integration Points
 
-- Input:
-  - `LocomotionInputGateway` yalnizca input okumak ve cache'lemekle sorumludur
-- Ability:
-  - `ILocomotionLockService` uzerinden hareket kilidi okunur
-- Animation:
-  - Driver, animator verisini locomotion'dan itmek yerine pozisyon deltasi uzerinden hesaplar
+- Input
+  - `LocomotionInputGateway` is responsible only for reading and caching input
+- Ability
+  - Movement lock is consumed through `ILocomotionLockService`
+- Animation
+  - The animation driver derives motion from position delta instead of pulling runtime values directly from locomotion
 
-## 7. Performans ve Guvenlik
+## 7. Performance and Safety
 
-- `FixedTick` icinde allocation yok.
-- Runtime referanslari bootstrap asamasinda kurulur.
-- Eksik config/referans durumunda bootstrap kendini guvenli sekilde kapatir.
+- No per-tick allocations are expected inside `FixedTick`.
+- Runtime references are established during bootstrap.
+- If required config or references are missing, bootstrap falls back to a safe disabled state.
 
-## 8. Manuel Test Checklist
+## 8. Manual Test Checklist
 
-- Dead zone davranisi
-- W/A/S/D + joystick input uyumu
-- Lock acikken hareketin durmasi
-- Rotation hizinin stabilitesi
-- Rigidbody ile duvar/collision uyumu
+- Dead zone behavior
+- Keyboard and joystick input consistency
+- Movement stopping correctly while lock is active
+- Stable turning speed
+- Rigidbody interaction with walls and collision
 
-## 9. Trade-off
+## 9. Trade-Offs
 
-- Su an duzlem tabanli hareket var (Y ekseni locomotion yok).
-- Sprint/acceleration/air-control katmanlari sonraki fazda eklenebilir.
+- Movement is currently planar only; there is no Y-axis locomotion layer.
+- Sprint, acceleration, and air-control layers were intentionally left for a later phase.

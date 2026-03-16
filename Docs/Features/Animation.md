@@ -1,70 +1,70 @@
 # Animation Feature
 
-## 1. Amac
+## 1. Purpose
 
-Animation feature, hareket verisini animator parametrelerine stabil sekilde aktarir ve ability eventlerinden gelen tetik/speed bilgisini animatora yazar.
+The Animation feature pushes stable movement data into animator parameters and applies ability-driven trigger and playback speed updates received through events.
 
-## 2. Scope Siniri
+## 2. Scope Boundary
 
-Feature'in sorumlulugu:
-- Hareket parametrelerini hesaplayip animatora yazmak
-- Ability trigger/index/speed sinyallerini consume etmek
-- Runtime clip override eslesmesini uygulamak
+Responsibilities of this feature:
+- Computing movement parameters and writing them into the animator
+- Consuming ability trigger, slot index, and playback speed signals
+- Applying runtime clip override mapping
 
-Feature disinda kalanlar:
-- Ability execute kararlari
-- Locomotion hareket hesaplari
+Out of scope:
+- Ability execution decisions
+- Locomotion movement calculations
 
-## 3. Runtime Bilesenleri
+## 3. Runtime Components
 
 - `PlayerAnimationDriver`
 - `PlayerAnimationConfigSO`
 
-Config kapsami:
-- Parametre adlari
-- Threshold/hold ve damping ayarlari
-- Ability hook parametreleri
-- Slot source clip listesi
+Config scope:
+- Parameter names
+- Threshold, hold, and damping settings
+- Ability-related animator parameter configuration
+- Slot source clip list
 
-## 4. Calisma Akisi
+## 4. Runtime Flow
 
-1. `FixedUpdate`:
-- Pozisyon delta'sindan velocity hesaplanir.
-- Local hareket bilesenleri normalize edilir.
-- `isMoving` threshold + hold ile karar verilir.
+1. `FixedUpdate`
+- Velocity is derived from position delta.
+- Local movement components are normalized.
+- `isMoving` is decided through threshold and hold logic.
 
-2. `Update`:
-- Animator float/bool parametreleri yazilir.
-- Pending ability sinyalleri consume edilir.
+2. `Update`
+- Animator float and bool parameters are written.
+- Pending ability signals are consumed.
 
-3. Event akisi:
+3. Event flow
 - `AbilityTriggeredEvent` (domain)
 - `AbilityLoadoutSlotAssignedEvent` (presentation)
 
-## 5. Entegrasyon Noktalari
+## 5. Integration Points
 
-- Locomotion:
-  - Hareket verisi dogrudan locomotion component'inden alinmaz; pozisyon deltasi uzerinden hesaplanir
-- Ability:
-  - `AbilityTriggeredEvent` ile trigger, slot index ve speed bilgisi alinabilir
-- Loadout:
-  - `AbilityLoadoutSlotAssignedEvent` ile slot-clip eslesmesi guncellenir
+- Locomotion
+  - Motion data is derived from position delta rather than reading directly from the locomotion component
+- Ability
+  - `AbilityTriggeredEvent` can provide trigger, slot index, and playback speed
+- Loadout
+  - `AbilityLoadoutSlotAssignedEvent` updates slot-to-clip mapping
 
-## 6. Stabilite Kararlari
+## 6. Stability Decisions
 
-- Parametre hash'leri cache edilir.
-- Float yazimlari epsilon ile filtrelenir.
-- Damping config ile ac/kapa yapilabilir.
-- Setup eksiginde driver guvenli no-op davranir.
+- Animator parameter hashes are cached.
+- Float writes are filtered with epsilon checks.
+- Damping can be enabled or disabled through config.
+- If setup is incomplete, the driver falls back to a safe no-op behavior.
 
-## 7. Manuel Test Checklist
+## 7. Manual Test Checklist
 
-- MoveX/MoveY/Speed/IsMoving dogru akiyor mu
-- Ability trigger + slot index animatora gidiyor mu
-- Ability speed parametresi cast aninda guncelleniyor mu
-- Slot clip override eslesmesi dogru mu
+- Correct flow for `MoveX`, `MoveY`, `Speed`, and `IsMoving`
+- Ability trigger and slot index reaching the animator
+- Ability playback speed updating at cast time
+- Correct slot clip override mapping
 
-## 8. Trade-off
+## 8. Trade-Offs
 
-- Root motion yerine runtime velocity bazli akis secildi.
-- Layer bazli ileri seviye blend/state callback entegrasyonu sade tutuldu.
+- Runtime velocity-based animation flow was preferred over root motion.
+- More advanced layer-based blend and state callback integrations were intentionally left lightweight.
