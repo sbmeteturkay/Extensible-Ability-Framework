@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94c5dd4d7b02c4a44b2ec731aae16ab3, type: 3}
   m_Name: AbilityCastFeedbackModuleSO
   m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityCastFeedbackModuleSO
-  _castVfxPrefab: {fileID: 0}
+  _order: 0
+  _castVfxPrefab: {fileID: 4809171458859421548, guid: 4e91ed1a8efe7044785b9bd97a47d87f, type: 3}
   _castSfx: {fileID: 8300000, guid: cabfae866cab347928b74b7d0ca6bfa9, type: 3}
 --- !u!114 &11400000
 MonoBehaviour:
@@ -31,17 +32,13 @@ MonoBehaviour:
   _icon: {fileID: 21300000, guid: 4b47d811efb5a1a4082edbca668834b8, type: 3}
   _cooldownSeconds: 1
   _energyCost: 20
-  _targetGroups: 4
+  _targetGroups: 5
   _movementPolicy: 1
   _minimumMovementLockDurationSeconds: 0
   _executor: {fileID: 11400000, guid: 690aeeae429642f4bb1815c4b1296b9f, type: 2}
   _mechanicConfig: {fileID: 1190475649411323769}
   _optionalModules:
   - {fileID: -5934079594079530833}
-  _modules: []
-  _overrides: []
-  _castVfxPrefab: {fileID: 0}
-  _castSfx: {fileID: 8300000, guid: cabfae866cab347928b74b7d0ca6bfa9, type: 3}
 --- !u!114 &1190475649411323769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -80,3 +77,5 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  _allowPhaseThroughObstaclesIfLandingIsValid: 0
+  _enableDebugTelemetry: 0
