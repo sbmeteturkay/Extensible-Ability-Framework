@@ -128,5 +128,4 @@ Adding a new optional behavior:
 ## 10. Trade-Offs
 
 - Automated test coverage is limited; validation is primarily manual and smoke-oriented.
-- The module pipeline is intentionally lightweight; a richer chained model is left for a future phase.
 - Energy regeneration is fixed at `10/s` and is not yet externalized into a dedicated config asset.

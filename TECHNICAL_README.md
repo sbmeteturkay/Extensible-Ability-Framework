@@ -36,6 +36,17 @@ Rationale:
 - The player prefab remains scene-independent while still communicating with scene-side UI and input through events.
 - Features do not reference each other directly; shared communication is routed through MessagePipe.
 
+### 3.1.1 Assembly Boundaries and Feature Independence
+
+- Runtime code is separated into `Core`, `Feature/*`, and `Shared` assemblies.
+- `Shared` hosts cross-feature contracts and event payloads (for example player switch contracts and ability presentation/domain events).
+- `Feature` assemblies should depend on `Shared` abstractions for cross-feature collaboration rather than concrete types from other features.
+
+Rationale:
+- Boundaries are enforced at compile time, so dependency drift is caught early.
+- Feature teams can iterate independently with lower regression risk.
+- Assembly separation supports the case goal of extensibility with controlled coupling.
+
 ### 3.2 Data-Driven Ability Model
 
 - Root asset: `AbilityDataSO`

@@ -54,6 +54,12 @@ Instead of concentrating gameplay logic inside a few large scripts, the project 
 
 Runtime composition is handled with `VContainer`, while cross-feature communication is routed through `MessagePipe` events.
 
+### Assembly Boundary Rule
+
+- Runtime code is split into separate assemblies (`Core`, `Feature/*`, `Shared`) to enforce compile-time boundaries.
+- Features are expected to communicate through `Shared` contracts and events instead of direct concrete references across feature assemblies.
+- This keeps feature evolution isolated and makes accidental cross-feature coupling visible early.
+
 ## Why This Structure
 
 The goal was not only to build a working demo, but to establish a foundation that can grow without turning into a tightly coupled gameplay script cluster.
@@ -69,6 +75,7 @@ This keeps both the authoring workflow and long-term maintenance more predictabl
 ## Architectural Decisions
 
 - `Feature-based structure` was chosen so ability, locomotion, and animation can evolve independently, reducing the chance that a change in one area breaks another.
+- `Assembly-level separation` was added so this independence is enforced at compile time, not only as a convention.
 - `Dependency Injection (VContainer)` was used to keep scene-side UI/input wiring and player-prefab runtime systems explicitly composed instead of relying on hidden dependencies.
 - `Event-driven communication (MessagePipe)` was preferred so HUD, animation, input, and execution layers stay loosely coupled while still reacting to the same runtime state.
 - `Data-driven authoring` was adopted so most new ability variants can be added as content, while runtime code is only extended when a genuinely new mechanic is introduced.

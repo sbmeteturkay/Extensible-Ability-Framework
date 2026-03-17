@@ -37,6 +37,19 @@ flowchart LR
     Ability -. lock service .-> Locomotion
 ```
 
+## Assembly Mapping
+
+- `CaseStudy.Core.Runtime` -> composition root and global setup
+- `CaseStudy.Shared.Runtime` -> shared contracts, events, reusable infrastructure
+- `CaseStudy.Feature.AbilitySystem.Runtime` -> ability runtime and authoring flow
+- `CaseStudy.Feature.Locomotion.Runtime` -> locomotion runtime and input
+- `CaseStudy.Feature.Animation.Runtime` -> animation driver and binding
+- `CaseStudy.Feature.PlayerControl.Runtime` -> player switching and control orchestration
+
+Rule:
+- Cross-feature dependencies should flow through `Shared` abstractions whenever possible.
+- Assembly separation is used to enforce this boundary at compile time.
+
 ## Folder Intent
 
 - `Assets/_Project/_Scripts/Core`
