@@ -74,13 +74,43 @@ This keeps both the authoring workflow and long-term maintenance more predictabl
 
 ## Architectural Decisions
 
-- `Feature-based structure` was chosen so ability, locomotion, and animation can evolve independently, reducing the chance that a change in one area breaks another.
-- `Assembly-level separation` was added so this independence is enforced at compile time, not only as a convention.
-- `Dependency Injection (VContainer)` was used to keep scene-side UI/input wiring and player-prefab runtime systems explicitly composed instead of relying on hidden dependencies.
-- `Event-driven communication (MessagePipe)` was preferred so HUD, animation, input, and execution layers stay loosely coupled while still reacting to the same runtime state.
-- `Data-driven authoring` was adopted so most new ability variants can be added as content, while runtime code is only extended when a genuinely new mechanic is introduced.
-- `Object pooling` was treated as a baseline requirement to avoid repeated instantiate/destroy cycles for projectiles and VFX, especially with mobile performance in mind.
-- `Single asset ability authoring` was selected so mechanic config and optional modules live under the same `AbilityDataSO`, reducing authoring friction and keeping asset-level changes easier to review.
+- `Feature-based structure`
+  - Decision: Gameplay code is organized by feature boundaries (`Ability`, `Locomotion`, `Animation`).
+  - Why: We needed independent iteration without editing unrelated systems.
+
+- `Assembly-level separation`
+  - Decision: Features are compiled as separate assemblies, with cross-feature contracts in `Shared`.
+  - Why: We wanted compile-time enforcement of boundaries, not convention-only discipline.
+
+- `Dependency Injection (VContainer)`
+  - Decision: Runtime composition is done via scopes/installers instead of scene lookups or service locator.
+  - Why: We needed explicit ownership and predictable dependency graphs for player-prefab and scene services.
+
+- `Event-driven communication (MessagePipe)`
+  - Decision: HUD, animation, input, and execution communicate through published events.
+  - Why: We needed loose coupling between runtime systems that react to shared state.
+
+- `Data-driven ability authoring`
+  - Decision: Ability behavior is authored through `AbilityDataSO + Executor + MechanicConfig + OptionalModules`.
+  - Why: Most new skills should be content additions, not runtime code changes.
+
+- `Object pooling as baseline`
+  - Decision: Projectile/VFX spawning uses pool services by default.
+  - Why: Mobile constraints require stable frame-time and low allocation churn.
+
+- `Single-asset ability authoring`
+  - Decision: Mechanic config and optional modules are embedded under one root `AbilityDataSO`.
+  - Why: We wanted faster authoring and easier review of ability-level changes.
+    
+### Trade-Offs
+
+- `Assembly boundaries`
+  - Extra assembly reference management is required during refactors.
+- `Event-driven flow`
+  - Runtime debugging follows event chains rather than direct call stacks.
+- `PlayerControlState orchestration`
+  - `PlayerControlState` currently coordinates multiple feature-facing components in one place for deterministic character switching.
+  - This is intentional for case scope, but a deeper interface abstraction can further reduce orchestration-level coupling later.
 
 ## Design Patterns
 
@@ -115,8 +145,11 @@ As a rule of thumb:
 - `New mechanic`: create a new executor and mechanic config
 - `New optional behavior`: create a new module
 
+<table>
+  <tr>
+    <td width="55%" valign="top">
+      
 ## Ability Authoring Model
-
 The same `AbilityDataSO` remains the root authoring asset for every ability.
 What changes from ability to ability is the selected executor, the required mechanic config for that executor, and the set of optional modules attached to the asset.
 
@@ -126,6 +159,19 @@ This is the key extensibility rule in the project:
 - `AbilityExecutorSO` can change when the mechanic changes.
 - `AbilityMechanicConfigSO` changes with the executor because it stores required mechanic-specific data.
 - `AbilityOptionalModuleSO` instances stay reusable and composable across multiple abilities.
+  
+### Reusable Module Library
+- Modules are reusable across abilities.
+- Executors define core mechanics.
+- Modules run at `BeforeTrigger`, `BeforeExecute`, `AfterExecute`.
+
+    </td>
+    <td width="45%" valign="top">
+      <img width="753" height="888" alt="image" src="https://github.com/user-attachments/assets/775d8073-57d6-42e6-9818-25ea378474a6" />
+    </td>
+    
+  </tr>
+</table>
 
 ```mermaid
 flowchart TD
@@ -237,7 +283,7 @@ For a more detailed structure diagram:
 
 https://github.com/user-attachments/assets/af30aaaf-b516-4e12-8170-1c09117d0fe1
 
-
+Android APK: [Download APK](https://drive.google.com/file/d/1y63BeGfWiu8UeYxBStyccs3LB3xyfPip/view?usp=sharing)
 
 ## Running The Project
 
