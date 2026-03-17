@@ -121,7 +121,7 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
 
         private void DrawCommonSection()
         {
-            EditorGUILayout.HelpBox("Ability key asset GUID'den otomatik gelir. Yeni icerik varyanti icin bu asseti kopyalayip duzenlemek yeterlidir.", MessageType.Info);
+            EditorGUILayout.HelpBox("Ability key is generated automatically from the asset GUID. For a new content variant, duplicating this asset and adjusting its values is enough.", MessageType.Info);
             EditorGUILayout.PropertyField(_displayNameProperty);
             EditorGUILayout.PropertyField(_iconProperty);
             EditorGUILayout.PropertyField(_cooldownSecondsProperty);
@@ -174,16 +174,16 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
 
             if (executor == null)
             {
-                EditorGUILayout.HelpBox("Executor secildiginde gerekli mechanic config tipi otomatik yonetilir.", MessageType.Info);
+                EditorGUILayout.HelpBox("Once an executor is assigned, the required mechanic config type is managed automatically.", MessageType.Info);
             }
             else if (currentConfig == null)
             {
-                EditorGUILayout.HelpBox($"'{executor.name}' icin mechanic config gerekli. Create Config ile ekleyebilirsin.", MessageType.Warning);
+                EditorGUILayout.HelpBox($"'{executor.name}' requires a mechanic config. Use Create Config to add one.", MessageType.Warning);
             }
             else if (requiredType != null && !requiredType.IsAssignableFrom(currentConfig.GetType()))
             {
                 EditorGUILayout.HelpBox(
-                    $"Secili config tipi executor ile uyumlu degil. Beklenen: {requiredType.Name}, mevcut: {currentConfig.GetType().Name}.",
+                    $"The selected config type is not compatible with the executor. Expected: {requiredType.Name}, current: {currentConfig.GetType().Name}.",
                     MessageType.Error);
             }
 
@@ -196,7 +196,7 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
                 _optionalModulesProperty,
                 typeof(AbilityOptionalModuleSO),
                 uniqueByType: true,
-                emptyMessage: "Bu liste executor'dan bagimsiz, tak-cikar eklenti verilerini tutar.");
+                emptyMessage: "This list stores optional plug-in style data that stays independent from the executor.");
         }
 
         private void DrawSubAssetList(SerializedProperty listProperty, Type baseType, bool uniqueByType, string emptyMessage)
@@ -222,6 +222,11 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         string entryLabel = entry != null ? entry.GetType().Name : $"Element {i}";
+                        string executionTimeBadge = BuildExecutionTimeBadge(entry);
+                        if (!string.IsNullOrWhiteSpace(executionTimeBadge))
+                        {
+                            entryLabel = $"{entryLabel}  [Runs At: {executionTimeBadge}]";
+                        }
                         int foldoutKey = BuildModuleFoldoutKey(entry, i);
                         bool expanded = GetModuleFoldoutState(foldoutKey);
                         bool newExpanded = EditorGUILayout.Foldout(expanded, entryLabel, true);
@@ -558,6 +563,53 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
             return types;
         }
 
+        private static string BuildExecutionTimeBadge(ScriptableObject entry)
+        {
+            if (entry is not AbilityOptionalModuleSO optionalModule)
+            {
+                return string.Empty;
+            }
+
+            return FormatExecutionTime(optionalModule.ExecutionTime);
+        }
+
+        private static string FormatExecutionTime(AbilityModuleExecutionTime executionTime)
+        {
+            if (executionTime == AbilityModuleExecutionTime.None)
+            {
+                return "No Runtime Hook";
+            }
+
+            var labels = new List<string>(5);
+
+            if ((executionTime & AbilityModuleExecutionTime.BeforeTrigger) != 0)
+            {
+                labels.Add("Before Trigger");
+            }
+
+            if ((executionTime & AbilityModuleExecutionTime.BeforeExecute) != 0)
+            {
+                labels.Add("Before Execute");
+            }
+
+            if ((executionTime & AbilityModuleExecutionTime.AfterExecute) != 0)
+            {
+                labels.Add("After Execute");
+            }
+
+            if ((executionTime & AbilityModuleExecutionTime.ExecutorRuntime) != 0)
+            {
+                labels.Add("Executor Runtime");
+            }
+
+            if ((executionTime & AbilityModuleExecutionTime.PresentationSetup) != 0)
+            {
+                labels.Add("Presentation Setup");
+            }
+
+            return labels.Count == 0 ? "Unknown" : string.Join(" + ", labels);
+        }
+
         private static int BuildModuleFoldoutKey(ScriptableObject entry, int index)
         {
             return entry != null ? entry.GetInstanceID() : -(index + 1);
@@ -607,3 +659,6 @@ namespace CaseStudy.Feature.AbilitySystem.Editor
     }
 }
 #endif
+
+
+

@@ -15,6 +15,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
         public AudioClip CastSfx => _castSfx;
 
+        public override AbilityModuleExecutionTime ExecutionTime => AbilityModuleExecutionTime.BeforeExecute;
+
         public override UniTask OnBeforeExecuteAsync(
             AbilityContext context,
             AbilityDataSO data,
@@ -58,3 +60,4 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
+

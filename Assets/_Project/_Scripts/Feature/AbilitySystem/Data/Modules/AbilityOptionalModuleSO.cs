@@ -16,6 +16,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
 
         public int Order => _order;
 
+        public virtual AbilityModuleExecutionTime ExecutionTime => AbilityModuleExecutionTime.ExecutorRuntime;
+
         public virtual bool IsCompatibleWith(AbilityExecutorSO executor)
         {
             return true;
@@ -52,5 +54,6 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
+
 
 

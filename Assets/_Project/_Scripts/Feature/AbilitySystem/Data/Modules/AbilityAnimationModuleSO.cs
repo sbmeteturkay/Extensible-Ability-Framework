@@ -12,5 +12,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         public AnimationClip AnimationClip => _animationClip;
         public bool UseCustomPlaybackSpeed => _useCustomPlaybackSpeed;
         public float PlaybackSpeed => _playbackSpeed;
+
+        public override AbilityModuleExecutionTime ExecutionTime => AbilityModuleExecutionTime.PresentationSetup;
     }
 }
+

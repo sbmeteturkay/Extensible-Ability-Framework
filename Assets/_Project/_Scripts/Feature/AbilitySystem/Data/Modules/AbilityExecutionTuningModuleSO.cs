@@ -26,6 +26,8 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         [SerializeField] private AbilityFailureReason _blockReason = AbilityFailureReason.InvalidConfiguration;
         [SerializeField] private string _blockMessage = "Blocked by AbilityExecutionTuningModuleSO.";
 
+        public override AbilityModuleExecutionTime ExecutionTime => AbilityModuleExecutionTime.BeforeTrigger;
+
         public override bool TryApplyBeforeTrigger(
             AbilityContext context,
             AbilityDataSO data,
@@ -70,5 +72,7 @@ namespace CaseStudy.Feature.AbilitySystem.Data
         }
     }
 }
+
+
 
 
