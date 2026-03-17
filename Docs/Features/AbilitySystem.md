@@ -27,11 +27,11 @@ Core runtime classes:
 - `EnergyService`
 
 Scope split:
-- `AbilitySceneLifetimeScope`: wires scene-side input and HUD
-- `AbilityPlayerLifetimeScope`: owns loadout, runtime services, and execution flow
+- `AbilitySceneLifetimeScope`: wires scene-side HUD presentation
+- `AbilityPlayerLifetimeScope`: owns input gateway, loadout, runtime services, and execution flow
 
 Runtime flow:
-1. Input or HUD publishes `AbilityTriggerRequestedEvent`.
+1. `AbilityInputGateway` publishes `AbilityTriggerRequestedEvent`.
 2. `AbilityController` resolves the target `AbilityDataSO` from the slot.
 3. Validation and before-trigger module hooks are executed.
 4. Cooldown, energy, and execution gates are evaluated.
@@ -97,6 +97,7 @@ Adding a new optional behavior:
 - Dash uses shape-cast-based collision checks.
 - `DashMechanicConfigSO` includes `EnableDebugTelemetry`.
 - `AbilityDataSOEditor` uses foldable sections and a validation panel.
+- Optional module rows show execution-stage badges in the inspector (`Runs At`).
 - The interaction demo is intentionally kept simple with a single receiver (`DummyAbilityTarget`).
 - Visual intent is decided by the ability layer through `AbilityVisualCommand`; the receiver only applies it.
 

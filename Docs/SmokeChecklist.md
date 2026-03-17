@@ -1,45 +1,45 @@
 # Smoke Checklist
 
-Bu checklist, her buyuk degisiklikten sonra 5-10 dakikada dogrulama icindir.
+Use this checklist after major changes for a quick 5-10 minute validation pass.
 
 ## Ability Core
 
-1. Slot tetikleme
-- Klavye ve HUD butonu ayni slotu tetikliyor.
+1. Slot Trigger
+- Keyboard and HUD button trigger the same slot.
 
 2. Cooldown
-- Baslatma, update ve bitis eventleri HUD'da dogru gorunuyor.
+- Start, update, and completion events are reflected correctly on the HUD.
 
 3. Energy
-- Ortak enerji slider'i tum ability kullanimlarinda dogru azalip doluyor.
+- The shared energy slider decreases and refills correctly across all abilities.
 
 ## Ability Types
 
 1. Dash
-- Engel yokken tam mesafe dash.
-- Engel varken engelde kesilme (icinden gecmeme).
+- Full dash distance with no obstacle.
+- Dash stops correctly when blocked by an obstacle.
 
 2. Projectile
-- Projectile pool altinda spawn/reuse.
-- Impact VFX pool reuse.
-- Impact SFX owner audio source ile calisiyor.
+- Projectile spawns and reuses under the pool root.
+- Impact VFX is pooled and reused.
+- Impact SFX plays through the owner audio source.
 
 3. AOE
-- Hit delay dogru.
-- Hit visual + hit vfx tetikleniyor.
+- Hit delay timing is correct.
+- Hit visual and hit VFX are triggered.
 
 ## Animation
 
-1. Ability trigger
-- Trigger + slot index animator parametreleri gidiyor.
+1. Ability Trigger
+- Trigger and slot index reach animator parameters.
 
-2. Ability speed
-- Config'ten gelen anim speed parametresi cast aninda uygulanýyor.
+2. Ability Speed
+- Animation speed from config is applied at cast time.
 
 ## Stability
 
-1. Missing config
-- Eksik module/mechanic durumda sistem crash etmeden warning ile devam ediyor.
+1. Missing Config
+- With missing module/mechanic data, the system logs warnings and does not crash.
 
-2. Scene reload
-- Reload sonrasi pool root yapisi ve spawn parent'lari dogru kalýyor.
+2. Scene Reload
+- After reload, pool root structure and spawn parents remain correct.

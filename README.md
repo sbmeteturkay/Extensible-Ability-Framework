@@ -6,6 +6,17 @@ At its core is a data-driven ability pipeline, while locomotion, animation, HUD,
 This repository is intended to demonstrate extensibility, clean responsibility boundaries, and a production-minded authoring workflow.
 The README focuses on the project-level architectural decisions and design patterns that shaped the implementation.
 
+## Case Focus: Extensible Ability System
+
+This case is centered on building an extensible ability framework, not a content-complete game loop.
+The primary value is the ability pipeline and its authoring model:
+
+- One root ability asset (`AbilityDataSO`) for each skill
+- Executor-driven mechanic strategy (`AbilityExecutorSO`)
+- Mechanic-specific required payload (`AbilityMechanicConfigSO`)
+- Optional, composable behavior extensions (`AbilityOptionalModuleSO`)
+- Event-driven runtime flow to HUD and animation without direct feature coupling
+
 ## Overview
 
 Core focus areas of the project:
@@ -26,6 +37,7 @@ Core focus areas of the project:
 - Pool-based spawning for projectiles and visual effects
 - Player locomotion lock and animation integration
 - Foldable inspector workflow with built-in validation
+- Optional module rows show Runs At execution-stage badges in the inspector
 
 ## Architecture Snapshot
 
@@ -80,7 +92,9 @@ The intended workflow is:
 2. Select an `AbilityExecutorSO` based on the mechanic type.
 3. Create the required `AbilityMechanicConfigSO` sub-asset for that executor.
 4. Add optional modules only for non-essential extensions such as feedback or auxiliary policies.
-5. Add the ability to the loadout and let the existing runtime pipeline handle triggering, validation, execution, cooldown, energy, HUD, and animation events.
+5. Add the ability to the loadout in the desired slot order.
+6. Assign that `AbilityLoadoutSO` to the player-side `AbilityRuntimeBootstrap`.
+7. Let the existing runtime pipeline handle triggering, validation, execution, cooldown, energy, HUD, and animation events.
 
 This separation is intentional:
 
@@ -94,18 +108,39 @@ As a rule of thumb:
 - `New mechanic`: create a new executor and mechanic config
 - `New optional behavior`: create a new module
 
-```mermaid
-flowchart LR
-    A["Create AbilityDataSO"] --> B["Choose Executor"]
-    B --> C["Create MechanicConfig"]
-    C --> D["Add Optional Modules (if needed)"]
-    D --> E["Assign to Loadout"]
-    E --> F["Existing Runtime Pipeline"]
+## Ability Authoring Model
 
-    F --> F1["Validation"]
-    F --> F2["Execution"]
-    F --> F3["Cooldown / Energy"]
-    F --> F4["HUD / Animation Events"]
+The same `AbilityDataSO` remains the root authoring asset for every ability.
+What changes from ability to ability is the selected executor, the required mechanic config for that executor, and the set of optional modules attached to the asset.
+
+This is the key extensibility rule in the project:
+
+- `AbilityDataSO` stays stable as the common entry point.
+- `AbilityExecutorSO` can change when the mechanic changes.
+- `AbilityMechanicConfigSO` changes with the executor because it stores required mechanic-specific data.
+- `AbilityOptionalModuleSO` instances stay reusable and composable across multiple abilities.
+
+```mermaid
+flowchart TD
+    A["AbilityDataSO<br/>Common ability asset"] --> B["AbilityExecutorSO<br/>Core mechanic strategy"]
+    A --> C["AbilityMechanicConfigSO<br/>Required mechanic-specific data"]
+    A --> D["AbilityOptionalModuleSO[]<br/>Reusable optional extensions"]
+
+    B --> B1["DashExecutorSO"]
+    B --> B2["ProjectileExecutorSO"]
+    B --> B3["AoeExecutorSO"]
+
+    C --> C1["Dash config"]
+    C --> C2["Projectile config"]
+    C --> C3["AOE config"]
+
+    D --> D1["SFX / VFX"]
+    D --> D2["Animation"]
+    D --> D3["Policy / feedback"]
+
+    A --> E["AbilityLoadoutSO"]
+    E --> F["AbilityRuntimeBootstrap"]
+    F --> G["Shared runtime pipeline"]
 ```
 
 ## Current Feature Set
@@ -120,7 +155,6 @@ flowchart LR
 
 Detailed documentation:
 - [Ability System Docs](Docs/Features/AbilitySystem.md)
-- [Ability System Docs (TR)](Docs/Features/AbilitySystem.tr.md)
 
 ### Locomotion
 
@@ -130,7 +164,6 @@ Detailed documentation:
 
 Detailed documentation:
 - [Locomotion Docs](Docs/Features/Locomotion.md)
-- [Locomotion Docs (TR)](Docs/Features/Locomotion.tr.md)
 
 ### Animation
 
@@ -140,21 +173,16 @@ Detailed documentation:
 
 Detailed documentation:
 - [Animation Docs](Docs/Features/Animation.md)
-- [Animation Docs (TR)](Docs/Features/Animation.tr.md)
 
 ## Technical Documentation
 
 In addition to this presentation-oriented README, the repository includes more detailed technical references:
 
-- [Turkish README](README.tr.md)
 - [Technical README](TECHNICAL_README.md)
 - [Ability Feature Scope](Docs/AbilityFeatureScope.md)
 - [Ability System Docs](Docs/Features/AbilitySystem.md)
-- [Ability System Docs (TR)](Docs/Features/AbilitySystem.tr.md)
 - [Locomotion Docs](Docs/Features/Locomotion.md)
-- [Locomotion Docs (TR)](Docs/Features/Locomotion.tr.md)
 - [Animation Docs](Docs/Features/Animation.md)
-- [Animation Docs (TR)](Docs/Features/Animation.tr.md)
 - [Smoke Checklist](Docs/SmokeChecklist.md)
 
 ## Project Structure
@@ -198,6 +226,11 @@ flowchart TD
 For a more detailed structure diagram:
 - [Project Structure Docs](Docs/ProjectStructure.md)
 
+## Demo Video
+
+- Video: [Gameplay Demo](https://github.com/your-org/your-repo/assets/your-demo-video-id)
+- Note: Replace the placeholder link above with the final uploaded demo URL.
+
 ## Running The Project
 
 1. Open the project in Unity Hub with version `6000.3.8f1`.
@@ -210,3 +243,7 @@ For a more detailed structure diagram:
 - This repository is a technical gameplay framework sample rather than a content-complete game.
 - More detailed rationale behind the implementation is documented in `TECHNICAL_README.md`.
 - Validation has been primarily manual; fast verification steps are listed in `Docs/SmokeChecklist.md`.
+
+
+
+

@@ -1,6 +1,6 @@
 # Project Structure
 
-Bu dokuman, repo klasor yapisini ve katman sinirlarini hizli okumak icin hazirlandi.
+This document summarizes repository layout and layer boundaries for quick onboarding.
 
 ## High-Level Structure
 
@@ -40,15 +40,15 @@ flowchart LR
 ## Folder Intent
 
 - `Assets/_Project/_Scripts/Core`
-  - Root composition, gameplay scope ve uygulama iskeleti
+  - Root composition, gameplay scope setup, and application skeleton.
 - `Assets/_Project/_Scripts/Feature`
-  - Oyun davranislarinin feature bazli implementasyonlari
+  - Feature-oriented gameplay implementations.
 - `Assets/_Project/_Scripts/Shared`
-  - Birden fazla feature tarafindan kullanilan ortak kontratlar ve servisler
+  - Cross-feature contracts and reusable services.
 - `Assets/_Project/Data`
-  - Authoring asset'leri ve feature verileri
+  - Authoring assets and feature data.
 - `Docs`
-  - Teknik aciklamalar, feature notlari ve destekleyici dokumanlar
+  - Technical notes, feature documentation, and validation guides.
 
 ## Current Feature Breakdown
 
@@ -75,5 +75,5 @@ flowchart LR
 
 ## Notes
 
-- `Shared`, ancak iki veya daha fazla feature icin gercekten ortak hale gelen yapilar icin kullanilir.
-- Feature'lar birbirinin implementasyon detayina baglanmaz; iletisim event, interface veya ortak servis kontratlari uzerinden kurulur.
+- `Shared` should only contain systems that are truly reused by two or more features.
+- Features should not depend on each other's implementation details; communication should happen through events, interfaces, or shared service contracts.

@@ -5,10 +5,11 @@ This document defines runtime scope boundaries and the authoring contract for th
 ## 1. Scope Topology
 
 GamePlayLifetimeScope (parent)
-- AbilitySceneLifetimeScope (child): input + HUD presentation
-- AbilityPlayerLifetimeScope (child): runtime ability logic and services
+- AbilitySceneLifetimeScope (child): HUD presentation
+- PlayerLifetimeScope (child): player-level shared services
+  - AbilityPlayerLifetimeScope (grandchild): input gateway + runtime ability logic and services
 
-Both child scopes communicate through MessagePipe brokers registered in the parent gameplay scope.
+Ability scene and player runtime communicate through MessagePipe brokers registered in the gameplay parent scope.
 
 ## 2. Scope Responsibilities
 
@@ -36,18 +37,16 @@ Event namespaces:
 Scene/UI side only.
 
 Responsibilities:
-- Capture input intent
-- Publish trigger request events
 - Present HUD state from events
 
 Typical components:
-- AbilityInputGateway
 - AbilityHudPresenter
 
 ### AbilityPlayerLifetimeScope
 Player runtime side only.
 
 Responsibilities:
+- Capture input intent and publish trigger requests
 - Build and validate ability runtime from loadout
 - Execute abilities
 - Manage cooldown and energy
@@ -60,6 +59,7 @@ Main bindings:
 - ICooldownService -> CooldownService
 - IEnergyService -> EnergyService
 - IPooledVfxService -> PooledVfxService
+- IAbilityInputGate -> AbilityInputGateway
 - AbilityRuntimeBootstrap (component in hierarchy)
 
 ## 3. Ability Authoring Contract
@@ -79,7 +79,7 @@ Validation guardrails (editor + runtime):
 
 ## 4. Execution Flow
 
-1. Scene input publishes AbilityTriggerRequestedEvent(slotIndex)
+1. Player input gateway publishes AbilityTriggerRequestedEvent(slotIndex)
 2. AbilityController resolves slot and data
 3. Pre-trigger module hooks run (ordered by module order)
 4. Cooldown check
@@ -129,4 +129,3 @@ Rule of thumb:
 
 - Explicit layering reduces bad-config risk
 - Authoring speed is high, but custom inspector/tooling dependency is higher
-

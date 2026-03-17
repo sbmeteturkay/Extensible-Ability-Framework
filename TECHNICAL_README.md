@@ -27,8 +27,8 @@ This document is the technical reference for the project. It complements the pre
 
 - `GamePlayLifetimeScope`: shared event broker registrations
 - `PlayerLifetimeScope`: player-level shared services such as `ILocomotionLockService`
-- `AbilityPlayerLifetimeScope`: ability domain services and runtime bootstrap
-- `AbilitySceneLifetimeScope`: scene-side input and HUD presentation
+- `AbilityPlayerLifetimeScope`: player-side input gateway, ability domain services, and runtime bootstrap
+- `AbilitySceneLifetimeScope`: scene-side HUD presentation
 - `LocomotionLifetimeScope`: locomotion input, controller, and bootstrap
 - `PlayerAnimationLifetimeScope`: animation driver
 
@@ -43,6 +43,7 @@ Rationale:
 - Execution strategy: `AbilityExecutorSO` derivatives
 - Optional feature extensions: `AbilityOptionalModuleSO`
 - Module hook pipeline: stage-based behavior injection without modifying the main controller flow
+- Inspector-visible module execution-stage badges (Runs At) for faster authoring feedback
 
 Rationale:
 - The system follows the rule of `new content variant = new asset`.
@@ -153,15 +154,10 @@ Quick validation checklist:
 
 ## 9. Additional Technical References
 
-- [Turkish Technical README](TECHNICAL_README.tr.md)
 - [Docs/Features/AbilitySystem.md](Docs/Features/AbilitySystem.md)
-- [Docs/Features/AbilitySystem.tr.md](Docs/Features/AbilitySystem.tr.md)
 - [Docs/Features/Locomotion.md](Docs/Features/Locomotion.md)
-- [Docs/Features/Locomotion.tr.md](Docs/Features/Locomotion.tr.md)
 - [Docs/Features/Animation.md](Docs/Features/Animation.md)
-- [Docs/Features/Animation.tr.md](Docs/Features/Animation.tr.md)
 - [Docs/AbilityFeatureScope.md](Docs/AbilityFeatureScope.md)
-- [Docs/LowTouchBacklog.md](Docs/LowTouchBacklog.md)
 - [Docs/SmokeChecklist.md](Docs/SmokeChecklist.md)
 
 ## 10. Possible Next Steps
@@ -193,3 +189,5 @@ Quick validation checklist:
 - The pool root API was renamed to `GetPoolsRoot()`, while `GetAbilityPoolsRoot()` remains as an obsolete compatibility wrapper.
 - Dash collision now uses shape casts and supports both block/phase modes with target-group-driven collision masks.
 - Ability inspector sections are foldable and include validation support.
+
+
