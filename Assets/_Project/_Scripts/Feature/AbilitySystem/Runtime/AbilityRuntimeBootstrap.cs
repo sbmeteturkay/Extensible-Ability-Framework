@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Data;
+using CaseStudy.Shared.AbilitySystem.Contracts;
 using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using CaseStudy.Shared.AbilitySystem.Events.Presentation;
 using CaseStudy.Shared.Locomotion.Interfaces;
@@ -211,3 +212,4 @@ namespace CaseStudy.Feature.AbilitySystem.Runtime
         }
     }
 }
+

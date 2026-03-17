@@ -1,4 +1,4 @@
-namespace CaseStudy.Core.PlayerControl.Contracts
+namespace CaseStudy.Shared.PlayerControl.Contracts
 {
     /// <summary>
     /// Represents a controllable player entry in the switch service.

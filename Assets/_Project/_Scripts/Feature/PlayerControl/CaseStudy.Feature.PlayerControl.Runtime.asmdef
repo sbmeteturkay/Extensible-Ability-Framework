@@ -1,0 +1,22 @@
+{
+  "name": "CaseStudy.Feature.PlayerControl.Runtime",
+  "rootNamespace": "CaseStudy.Feature.PlayerControl",
+  "references": [
+    "CaseStudy.Shared.Runtime",
+    "CaseStudy.Feature.AbilitySystem.Runtime",
+    "CaseStudy.Feature.Locomotion.Runtime",
+    "CaseStudy.Feature.Animation.Runtime",
+    "VContainer",
+    "Unity.InputSystem",
+    "Unity.Cinemachine"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

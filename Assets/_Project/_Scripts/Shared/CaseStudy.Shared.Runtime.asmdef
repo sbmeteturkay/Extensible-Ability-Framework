@@ -1,0 +1,16 @@
+{
+    "name": "CaseStudy.Shared.Runtime",
+    "rootNamespace": "CaseStudy.Shared",
+  "references": [
+    "UniTask"
+  ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

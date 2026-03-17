@@ -1,4 +1,4 @@
-namespace CaseStudy.Feature.AbilitySystem.Contracts
+namespace CaseStudy.Shared.AbilitySystem.Contracts
 {
     /// <summary>
     /// Provides the player-local input gate state used by ability trigger flow.

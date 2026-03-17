@@ -2,6 +2,7 @@ using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Input;
 using CaseStudy.Feature.AbilitySystem.Runtime;
 using CaseStudy.Feature.AbilitySystem.Services;
+using CaseStudy.Shared.AbilitySystem.Contracts;
 using CaseStudy.Shared.Vfx.Interfaces;
 using CaseStudy.Shared.Vfx.Services;
 using UnityEngine;
@@ -52,3 +53,4 @@ namespace CaseStudy.Feature.AbilitySystem.Installers
         }
     }
 }
+

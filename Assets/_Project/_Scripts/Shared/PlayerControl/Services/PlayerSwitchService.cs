@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using CaseStudy.Core.PlayerControl.Contracts;
+using CaseStudy.Shared.PlayerControl.Contracts;
 using UnityEngine;
 
-namespace CaseStudy.Core.PlayerControl.Services
+namespace CaseStudy.Shared.PlayerControl.Services
 {
     /// <summary>
     /// Tracks controllable players and switches active control in registration order.

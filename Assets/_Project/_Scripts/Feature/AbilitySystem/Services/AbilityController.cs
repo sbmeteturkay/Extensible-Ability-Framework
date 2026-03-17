@@ -4,6 +4,7 @@ using System.Threading;
 using CaseStudy.Feature.AbilitySystem.Contracts;
 using CaseStudy.Feature.AbilitySystem.Data;
 using CaseStudy.Feature.AbilitySystem.Domain;
+using CaseStudy.Shared.AbilitySystem.Contracts;
 using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using Cysharp.Threading.Tasks;
 using MessagePipe;
@@ -534,3 +535,4 @@ namespace CaseStudy.Feature.AbilitySystem.Services
         }
     }
 }
+

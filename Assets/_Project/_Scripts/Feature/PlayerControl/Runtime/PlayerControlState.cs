@@ -1,15 +1,14 @@
-using CaseStudy.Core.Installers;
-using CaseStudy.Core.PlayerControl.Contracts;
 using CaseStudy.Feature.AbilitySystem.Input;
 using CaseStudy.Feature.AbilitySystem.Runtime;
 using CaseStudy.Feature.Animation.Runtime;
 using CaseStudy.Feature.Locomotion.Input;
+using CaseStudy.Shared.PlayerControl.Contracts;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 
-namespace CaseStudy.Core.PlayerControl.Runtime
+namespace CaseStudy.Feature.PlayerControl.Runtime
 {
     /// <summary>
     /// Player-side control node that toggles local input gateways and camera,
@@ -29,7 +28,6 @@ namespace CaseStudy.Core.PlayerControl.Runtime
 
         private IPlayerSwitchService _switchService;
         private bool _isControlled;
-        private Transform _playerRoot;
 
         public bool IsAvailable => isActiveAndEnabled;
 
@@ -41,31 +39,29 @@ namespace CaseStudy.Core.PlayerControl.Runtime
 
         private void Awake()
         {
-            CachePlayerRoot();
-
             if (_abilityInputGateway == null)
             {
-                _abilityInputGateway = FindOnPlayerRoot<AbilityInputGateway>();
+                _abilityInputGateway = FindInOwnerHierarchy<AbilityInputGateway>();
             }
 
             if (_locomotionInputGateway == null)
             {
-                _locomotionInputGateway = FindOnPlayerRoot<LocomotionInputGateway>();
+                _locomotionInputGateway = FindInOwnerHierarchy<LocomotionInputGateway>();
             }
 
             if (_playerAnimationDriver == null)
             {
-                _playerAnimationDriver = FindOnPlayerRoot<PlayerAnimationDriver>();
+                _playerAnimationDriver = FindInOwnerHierarchy<PlayerAnimationDriver>();
             }
 
             if (_abilityRuntimeBootstrap == null)
             {
-                _abilityRuntimeBootstrap = FindOnPlayerRoot<AbilityRuntimeBootstrap>();
+                _abilityRuntimeBootstrap = FindInOwnerHierarchy<AbilityRuntimeBootstrap>();
             }
 
             if (_playerCamera == null)
             {
-                _playerCamera = FindOnPlayerRoot<CinemachineCamera>();
+                _playerCamera = FindInOwnerHierarchy<CinemachineCamera>();
             }
         }
 
@@ -159,20 +155,21 @@ namespace CaseStudy.Core.PlayerControl.Runtime
             _switchAction.action.performed -= OnSwitchPerformed;
         }
 
-        private void CachePlayerRoot()
+        private T FindInOwnerHierarchy<T>() where T : Component
         {
-            PlayerLifetimeScope playerScope = GetComponentInParent<PlayerLifetimeScope>();
-            _playerRoot = playerScope != null ? playerScope.transform : transform;
-        }
-
-        private T FindOnPlayerRoot<T>() where T : Component
-        {
-            if (_playerRoot == null)
+            Transform current = transform;
+            while (current != null)
             {
-                return GetComponentInChildren<T>(true);
+                T found = current.GetComponentInChildren<T>(true);
+                if (found != null)
+                {
+                    return found;
+                }
+
+                current = current.parent;
             }
 
-            return _playerRoot.GetComponentInChildren<T>(true);
+            return null;
         }
     }
 }

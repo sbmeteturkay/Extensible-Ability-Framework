@@ -1,0 +1,18 @@
+{
+  "name": "CaseStudy.Feature.Locomotion.Runtime",
+  "rootNamespace": "CaseStudy.Feature.Locomotion",
+  "references": [
+    "CaseStudy.Shared.Runtime",
+    "VContainer",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

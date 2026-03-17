@@ -1,0 +1,21 @@
+{
+    "name": "CaseStudy.Feature.AbilitySystem.Runtime",
+    "rootNamespace": "CaseStudy.Feature.AbilitySystem",
+    "references": [
+        "CaseStudy.Shared.Runtime",
+        "UniTask",
+        "MessagePipe",
+        "VContainer",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

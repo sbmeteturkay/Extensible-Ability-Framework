@@ -1,7 +1,7 @@
-using CaseStudy.Core.PlayerControl.Contracts;
-using CaseStudy.Core.PlayerControl.Services;
 using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using CaseStudy.Shared.AbilitySystem.Events.Presentation;
+using CaseStudy.Shared.PlayerControl.Contracts;
+using CaseStudy.Shared.PlayerControl.Services;
 using MessagePipe;
 using VContainer;
 using VContainer.Unity;

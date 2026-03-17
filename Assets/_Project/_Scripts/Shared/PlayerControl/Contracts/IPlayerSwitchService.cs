@@ -1,4 +1,4 @@
-namespace CaseStudy.Core.PlayerControl.Contracts
+namespace CaseStudy.Shared.PlayerControl.Contracts
 {
     /// <summary>
     /// Coordinates which player currently receives control.

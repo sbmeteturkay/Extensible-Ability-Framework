@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace CaseStudy.Shared.Pooling
 {
-    internal static class PoolRootRegistry
+    public static class PoolRootRegistry
     {
         private static Transform _poolsRoot;
 

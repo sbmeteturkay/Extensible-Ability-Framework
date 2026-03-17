@@ -1,7 +1,5 @@
 using System;
-using CaseStudy.Core.PlayerControl.Runtime;
-using CaseStudy.Feature.AbilitySystem.Contracts;
-using CaseStudy.Feature.AbilitySystem.Input;
+using CaseStudy.Shared.AbilitySystem.Contracts;
 using CaseStudy.Feature.Animation.Data;
 using CaseStudy.Shared.AbilitySystem.Events.Domain;
 using CaseStudy.Shared.AbilitySystem.Events.Presentation;
@@ -242,21 +240,20 @@ namespace CaseStudy.Feature.Animation.Runtime
                 return;
             }
 
-            PlayerControlState controlState = GetComponentInParent<PlayerControlState>();
-            if (controlState != null)
+            Transform current = transform;
+            while (current != null)
             {
-                AbilityInputGateway gateway = controlState.GetComponentInChildren<AbilityInputGateway>(true);
-                if (gateway != null)
+                MonoBehaviour[] components = current.GetComponentsInChildren<MonoBehaviour>(true);
+                for (int i = 0; i < components.Length; i++)
                 {
-                    _abilityInputGate = gateway;
-                    return;
+                    if (components[i] is IAbilityInputGate inputGate)
+                    {
+                        _abilityInputGate = inputGate;
+                        return;
+                    }
                 }
-            }
 
-            AbilityInputGateway localGateway = GetComponentInChildren<AbilityInputGateway>(true);
-            if (localGateway != null)
-            {
-                _abilityInputGate = localGateway;
+                current = current.parent;
             }
         }
 
@@ -514,6 +511,8 @@ namespace CaseStudy.Feature.Animation.Runtime
         }
     }
 }
+
+
 
 
 
