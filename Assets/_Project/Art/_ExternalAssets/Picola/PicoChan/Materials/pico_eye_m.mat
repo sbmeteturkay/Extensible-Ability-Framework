@@ -9,6 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: pico_eye_m
   m_Shader: {fileID: 4800000, guid: be891319084e9d147b09d89e80ce60e0, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _DISABLE_OUTLINE
   - _EMISSIVE_SIMPLE
@@ -27,6 +29,7 @@ Material:
   disabledShaderPasses:
   - SRPDEFAULTUNLIT
   - ALWAYS
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -358,7 +361,7 @@ Material:
     - _IsBaseMapAlphaAsClippingMask: 0
     - _Is_BLD: 0
     - _Is_BakedNormal: 0
-    - _Is_BlendAddToHiColor: 0
+    - _Is_BlendAddToHiColor: 1
     - _Is_BlendAddToMatCap: 1
     - _Is_BlendBaseColor: 0
     - _Is_ColorShift: 0
@@ -368,7 +371,7 @@ Material:
     - _Is_LightColor_2nd_Shade: 0
     - _Is_LightColor_AR: 1
     - _Is_LightColor_Ap_RimLight: 0
-    - _Is_LightColor_Base: 1
+    - _Is_LightColor_Base: 0
     - _Is_LightColor_HighColor: 0
     - _Is_LightColor_MatCap: 0
     - _Is_LightColor_Outline: 0
@@ -526,7 +529,7 @@ Material:
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _Emissive_Color: {r: 0, g: 0, b: 0, a: 1}
     - _FirstShadeMaskColor: {r: 0, g: 1, b: 1, a: 1}
-    - _HighColor: {r: 0, g: 0, b: 0, a: 1}
+    - _HighColor: {r: 1, g: 0.972549, b: 0.8784314, a: 1}
     - _HighlightMaskColor: {r: 1, g: 1, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
@@ -546,6 +549,7 @@ Material:
     - _ViewShift: {r: 0, g: 0, b: 0, a: 1}
     - emissive: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &3023615855169517556
 MonoBehaviour:
   m_ObjectHideFlags: 11
