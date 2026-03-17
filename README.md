@@ -166,7 +166,7 @@ This is the key extensibility rule in the project:
 - Modules run at `BeforeTrigger`, `BeforeExecute`, `AfterExecute`.
 
     </td>
-    <td width="45%" valign="top">
+    <td width="100%" valign="middle">
       <img width="720" height="1080" alt="image" src="https://github.com/user-attachments/assets/775d8073-57d6-42e6-9818-25ea378474a6" />
     </td>
     
