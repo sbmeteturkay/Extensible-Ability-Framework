@@ -167,7 +167,7 @@ This is the key extensibility rule in the project:
 
     </td>
     <td width="45%" valign="top">
-      <img width="753" height="888" alt="image" src="https://github.com/user-attachments/assets/775d8073-57d6-42e6-9818-25ea378474a6" />
+      <img width="720" height="1080" alt="image" src="https://github.com/user-attachments/assets/775d8073-57d6-42e6-9818-25ea378474a6" />
     </td>
     
   </tr>
@@ -279,7 +279,7 @@ flowchart TD
 For a more detailed structure diagram:
 - [Project Structure Docs](Docs/ProjectStructure.md)
 
-## Demo Video
+## Demo
 
 https://github.com/user-attachments/assets/af30aaaf-b516-4e12-8170-1c09117d0fe1
 
