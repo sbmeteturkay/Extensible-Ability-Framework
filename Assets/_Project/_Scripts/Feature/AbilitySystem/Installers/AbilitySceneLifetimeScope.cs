@@ -1,12 +1,12 @@
-﻿using CaseStudy.Feature.AbilitySystem.UI;
+using CaseStudy.Feature.AbilitySystem.UI;
 using VContainer;
 using VContainer.Unity;
 
 namespace CaseStudy.Feature.AbilitySystem.Installers
 {
     /// <summary>
-    /// Scene-side scope for ability presentation and input gateway.
-    /// Place this under UI/input scene hierarchy.
+    /// Scene-side scope for ability HUD presentation.
+    /// Place this under the scene UI hierarchy.
     /// </summary>
     public sealed class AbilitySceneLifetimeScope : LifetimeScope
     {
@@ -16,3 +16,4 @@ namespace CaseStudy.Feature.AbilitySystem.Installers
         }
     }
 }
+

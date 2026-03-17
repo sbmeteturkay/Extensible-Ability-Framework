@@ -18,7 +18,7 @@ namespace CaseStudy.Feature.Locomotion.Installers
         {
             if (!TryGetComponent(out LocomotionInputGateway locomotionInputGateway) || !TryGetComponent(out LocomotionRuntimeBootstrap locomotionRuntimeBootstrap))
             {
-                Debug.Log("LocomotionInputGateway or LocomotionRuntimeBootstrap is null");
+                Debug.LogWarning("LocomotionLifetimeScope: LocomotionInputGateway or LocomotionRuntimeBootstrap is missing on scope object.", this);
                 return;
             }
 
@@ -33,3 +33,4 @@ namespace CaseStudy.Feature.Locomotion.Installers
         }
     }
 }
+
