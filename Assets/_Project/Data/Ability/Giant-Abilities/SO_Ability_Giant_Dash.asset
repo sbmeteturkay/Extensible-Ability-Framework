@@ -39,6 +39,7 @@ MonoBehaviour:
   _mechanicConfig: {fileID: 1190475649411323769}
   _optionalModules:
   - {fileID: -5934079594079530833}
+  - {fileID: 6632085588182397896}
 --- !u!114 &1190475649411323769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79,3 +80,19 @@ MonoBehaviour:
     m_RotationOrder: 4
   _allowPhaseThroughObstaclesIfLandingIsValid: 0
   _enableDebugTelemetry: 0
+--- !u!114 &6632085588182397896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1173fe799f0e9e94c93e6d35a5790b40, type: 3}
+  m_Name: AbilityAnimationModuleSO
+  m_EditorClassIdentifier: Assembly-CSharp::CaseStudy.Feature.AbilitySystem.Data.AbilityAnimationModuleSO
+  _order: 0
+  _animationClip: {fileID: 7400000, guid: 45e23ce6e0f95404c8d0e6d19b6fc704, type: 2}
+  _useCustomPlaybackSpeed: 0
+  _playbackSpeed: 1
