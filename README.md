@@ -228,22 +228,18 @@ For a more detailed structure diagram:
 
 ## Demo Video
 
-- Video: [Gameplay Demo](https://github.com/your-org/your-repo/assets/your-demo-video-id)
-- Note: Replace the placeholder link above with the final uploaded demo URL.
+https://github.com/user-attachments/assets/af30aaaf-b516-4e12-8170-1c09117d0fe1
+
+
 
 ## Running The Project
 
 1. Open the project in Unity Hub with version `6000.3.8f1`.
 2. Load `Assets/_Project/Scenes/Gameplay.unity`.
-3. Verify that the scene and player scope hierarchy is active.
-4. Enter Play Mode and test the ability, HUD, locomotion, and animation flow.
+3. Enter Play Mode and test the ability, HUD, locomotion, and animation flow.
 
 ## Notes
 
 - This repository is a technical gameplay framework sample rather than a content-complete game.
 - More detailed rationale behind the implementation is documented in `TECHNICAL_README.md`.
 - Validation has been primarily manual; fast verification steps are listed in `Docs/SmokeChecklist.md`.
-
-
-
-
