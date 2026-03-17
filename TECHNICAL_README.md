@@ -156,12 +156,17 @@ Rationale:
 Quick validation checklist:
 - [Docs/SmokeChecklist.md](Docs/SmokeChecklist.md)
 
-## 8. Trade-Offs and Intentional Simplifications
+## 8. Trade-Offs and Simplifications
 
-- Automated test coverage is currently limited; manual validation was prioritized for the case scope.
-- Runtime tuning remains intentionally lightweight through the module hook model; a richer module chain could be added later.
-- Energy regeneration is currently fixed at `10/s` and was intentionally kept out of a separate config asset for faster iteration.
-- Single-asset authoring was favored for speed and usability, with the understanding that deeper editor tooling can be added in a later phase if needed.
+Trade-offs:
+- `Assembly boundaries`: compile-time isolation is stronger, but assembly reference management is an extra refactor cost.
+- `Event-driven flow`: feature decoupling is stronger, but debugging often requires tracing event chains instead of direct call stacks.
+- `PlayerControlState orchestration`: character-switch control is deterministic from one place, but this central node currently touches multiple feature-facing components.
+
+Intentional simplifications for case scope:
+- Automated test coverage is currently limited; manual validation was prioritized.
+- Energy regeneration is fixed at `10/s` to keep iteration fast.
+- Single-asset authoring was favored for usability; deeper editor tooling can be added later.
 
 ## 9. Additional Technical References
 
@@ -171,18 +176,7 @@ Quick validation checklist:
 - [Docs/AbilityFeatureScope.md](Docs/AbilityFeatureScope.md)
 - [Docs/SmokeChecklist.md](Docs/SmokeChecklist.md)
 
-## 10. Possible Next Steps
-
-- Editor tooling
-  - Ability authoring validator window
-  - Runtime debug panel for energy, cooldown, and locomotion lock state
-- Testing
-  - Edit Mode tests for ability validation and service logic
-  - Play Mode smoke tests for the main executor flow
-- Module system
-  - A more general and chainable override pipeline
-
-## 11. Dash Physics Rationale
+## 10. Dash Physics Rationale
 
 - Dash is implemented through Rigidbody-based movement using `MovePosition`.
 - A transform-only teleport-style implementation was intentionally avoided so dash behavior remains consistent with the existing collider and rigidbody setup.
@@ -193,12 +187,5 @@ Quick validation checklist:
 - Which layers can block dash movement is resolved from `AbilityDataSO.TargetGroups`, so dash only reacts to layers intentionally defined in the ability data.
 - For performance, collider information is resolved and cached once at execution start; the dash loop itself does not perform repeated `GetComponent` or `GetComponentsInChildren` calls.
 - This approach addresses the case expectation of explaining the physical reasoning behind dash implementation while also supporting a controlled phase-through option when design requires it.
-
-## 12. Current Technical Notes (Mar 2026)
-
-- Ability event contracts were split into `Domain` and `Presentation`.
-- The pool root API was renamed to `GetPoolsRoot()`, while `GetAbilityPoolsRoot()` remains as an obsolete compatibility wrapper.
-- Dash collision now uses shape casts and supports both block/phase modes with target-group-driven collision masks.
-- Ability inspector sections are foldable and include validation support.
 
 

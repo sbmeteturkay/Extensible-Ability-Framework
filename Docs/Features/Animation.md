@@ -15,6 +15,10 @@ Out of scope:
 - Ability execution decisions
 - Locomotion movement calculations
 
+Dependency rule:
+- Animation reacts through shared ability contracts/events.
+- It should not require direct runtime references to other feature assemblies.
+
 ## 3. Runtime Components
 
 - `PlayerAnimationDriver`
@@ -46,7 +50,7 @@ Config scope:
 - Locomotion
   - Motion data is derived from position delta rather than reading directly from the locomotion component
 - Ability
-  - `AbilityTriggeredEvent` can provide trigger, slot index, and playback speed
+  - Uses shared contract `IAbilityInputGate` for input-gate awareness
 - Loadout
   - `AbilityLoadoutSlotAssignedEvent` updates slot-to-clip mapping
 

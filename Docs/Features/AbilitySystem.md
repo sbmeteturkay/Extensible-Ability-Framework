@@ -17,6 +17,10 @@ Out of scope:
 - Core player movement system (Locomotion feature)
 - Animator state machine design (Animation feature)
 
+Dependency rule:
+- Cross-feature communication is done through `Shared` contracts/events.
+- This feature does not require direct runtime references to Animation or Locomotion assemblies.
+
 ## 3. Runtime Architecture
 
 Core runtime classes:
@@ -120,10 +124,11 @@ Adding a new optional behavior:
 - Locomotion
   - `ILocomotionLockService`
 - Animation
-  - `AbilityTriggeredEvent`
+  - `AbilityTriggeredEvent` and `AbilityLoadoutSlotAssignedEvent` (shared events)
 - Shared
   - MessagePipe event broker
   - Pooled VFX service
+  - `IAbilityInputGate` contract
 
 ## 10. Trade-Offs
 

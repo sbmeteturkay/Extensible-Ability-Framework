@@ -75,7 +75,7 @@ This keeps both the authoring workflow and long-term maintenance more predictabl
 ## Architectural Decisions
 
 - `Feature-based structure`
-  - Decision: Gameplay code is organized by feature boundaries (`Ability`, `Locomotion`, `Animation`).
+  - Decision: Gameplay code is organized by feature boundaries (`Ability`, `Locomotion`, `Animation`, `PlayerControl`).
   - Why: We needed independent iteration without editing unrelated systems.
 
 - `Assembly-level separation`
@@ -279,7 +279,7 @@ flowchart TD
 For a more detailed structure diagram:
 - [Project Structure Docs](Docs/ProjectStructure.md)
 
-## Demo
+## Demo Video and APK
 
 https://github.com/user-attachments/assets/af30aaaf-b516-4e12-8170-1c09117d0fe1
 
@@ -290,6 +290,13 @@ Android APK: [Download APK](https://drive.google.com/file/d/1y63BeGfWiu8UeYxBSty
 1. Open the project in Unity Hub with version `6000.3.8f1`.
 2. Load `Assets/_Project/Scenes/Gameplay.unity`.
 3. Enter Play Mode and test the ability, HUD, locomotion, and animation flow.
+
+## Controls
+
+- Move: `W / A / S / D`
+- Ability Slots: `1 / 2 / 3`
+- Switch Character: `Left Shift`
+- Mobile: On-screen ability buttons + virtual joystick
 
 ## Notes
 

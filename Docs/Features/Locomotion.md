@@ -16,6 +16,10 @@ Out of scope:
 - Ability behavior
 - Animator state decisions
 
+Dependency rule:
+- Locomotion depends on shared lock contracts (`ILocomotionLockService`) for cross-feature interaction.
+- It should not require direct runtime references to ability execution internals.
+
 ## 3. Runtime Components
 
 - `LocomotionInputGateway` (`ILocomotionInputReader`)
